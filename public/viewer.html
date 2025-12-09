@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>PDFBus Viewer + PentaSign</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    html,body{height:100%;margin:0}
+    body{
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      display:flex;
+      flex-direction:column;
+      height:100vh;
+      background:#050505;
+      color:#eee;
+    }
+    #toolbar{
+      padding:8px;
+      background:#0b0b0b;
+      color:#ddd;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      border-bottom:1px solid #222;
+    }
+    #viewer{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    #pages{
+      flex:1;
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      justify-content:center;
+      padding:8px;
+      overflow:auto;
+      box-sizing:border-box;
+      background:#111;
+    }
+    canvas{
+      background:#fff;
+      display:block;
+      max-width:100%;
+      height:auto;
+    }
+    #controls{
+      margin-left:auto;
+      display:flex;
+      gap:8px;
+    }
+    button{
+      padding:6px 10px;
+      background:#222;
+      border:1px solid #333;
+      color:#ddd;
+      cursor:pointer;
+      border-radius:3px;
+      font-size:0.9rem;
+    }
+    button:hover{background:#333}
+    #pentasignPanel{
+      padding:8px 12px;
+      background:#050505;
+      border-top:1px solid #222;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    #pentasignPanel label{
+      font-size:0.8rem;
+      opacity:0.85;
+    }
+    #pentasignControls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    #sofiInput{
+      padding:4px 6px;
+      border-radius:3px;
+      border:1px solid #333;
+      background:#101010;
+      color:#eee;
+      min-width:140px;
+    }
+    #signStatus{
+      font-size:0.8rem;
+      min-height:1.2em;
+    }
+    #bundleOutput{
+      width:100%;
+      min-height:120px;
+      max-height:200px;
+      resize:vertical;
+      box-sizing:border-box;
+      background:#050505;
+      color:#e5e5e5;
+      border-radius:3px;
+      border:1px solid #333;
+      font-family:Menlo,Monaco,Consolas,monospace;
+      font-size:0.75rem;
+      padding:6px 8px;
+      white-space:pre;
+      overflow:auto;
+    }
+    #patternSvgBox{
+      margin-top:6px;
+      padding:4px 0;
+    }
+  </style>
+  <!-- PDF.js (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+  <!-- pdfbus client integration -->
+  <script src="/tools/pdfbus_protocol/client.js"></script>
+  <!-- PentaSign pattern + client -->
+  <script src="/tools/pentasign/pattern.js"></script>
+  <script src="/tools/pentasign/client.js"></script>
+</head>
+<body>
+  <div id="toolbar">
+    <div>
+      <button id="prev">Prev</button>
+      <button id="next">Next</button>
+    </div>
+    <div style="margin-left:12px">
+      Page: <span id="page_num">0</span> / <span id="page_count">0</span>
+    </div>
+    <div id="controls">
+      <button id="toggleSpread">Toggle 1/2-up</button>
+      <button id="open">Open in new tab</button>
+    </div>
+  </div>
+
+  <div id="viewer">
+    <div id="pages">
+      <canvas id="canvas-left"></canvas>
+      <canvas id="canvas-right" style="display:none"></canvas>
+    </div>
+    <div id="pentasignPanel">
+      <div id="pentasignControls">
+        <label for="sofiInput">SOFI / ID for signature:</label>
+        <!-- placeholder changed to all ones -->
+        <input id="sofiInput" type="text" placeholder="111111111" />
+        <button id="btnSign">Sign with SOFI</button>
+        <button id="btnCopyBundle">Copy bundle JSON</button>
+      </div>
+      <div id="signStatus"></div>
+      <textarea id="bundleOutput" readonly placeholder="Bundle JSON will appear here after signing..."></textarea>
+      <div id="patternSvgBox"></div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    // Set pdf.js worker source
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+    }
+
+    const params = new URLSearchParams(location.search);
+    const src = params.get('pdf') || params.get('src');
+    const pdfId = params.get('pdf_id') || (src ? src.split('/').pop() : null);
+
+    if (!src) {
+      document.body.innerHTML = '<p style="padding:16px; color:#fcc">Missing pdf parameter. Use ?pdf=/sample.pdf</p>';
+      return;
+    }
+
+    // best-effort fullscreen
+    try {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+    } catch(e){}
+
+    const pdfjsLib = window['pdfjsLib'];
+    const loadingTask = pdfjsLib.getDocument(src);
+    let pdfDoc = null;
+    let pageNum = 1;
+    let spread = null;
+
+    const canvasLeft = document.getElementById('canvas-left');
+    const canvasRight = document.getElementById('canvas-right');
+
+    function chooseSpread(origWidth, origHeight){
+      if (spread === 1) return 1;
+      if (spread === 2) return 2;
+      const availableW = window.innerWidth - 40;
+      const availableH = window.innerHeight - document.getElementById('toolbar').offsetHeight - document.getElementById('pentasignPanel').offsetHeight - 40;
+      const scaleForHeight = availableH / origHeight;
+      const widthAtHeight = origWidth * scaleForHeight;
+      if (widthAtHeight * 2 + 16 <= availableW) return 2;
+      return 1;
+    }
+
+    function renderPages(){
+      if (!pdfDoc) return;
+      pdfDoc.getPage(pageNum).then(function(page){
+        const vp1 = page.getViewport({scale:1});
+        const pagesToShow = Math.min(chooseSpread(vp1.width, vp1.height), pdfDoc.numPages - pageNum + 1);
+        const availableW = window.innerWidth - 40;
+        const availableH = window.innerHeight - document.getElementById('toolbar').offsetHeight - document.getElementById('pentasignPanel').offsetHeight - 40;
+        const scaleH = availableH / vp1.height;
+        const scaleW = availableW / (vp1.width * pagesToShow);
+        const scale = Math.min(scaleH, scaleW, 2); // Cap scale at 2x
+
+        const viewportL = page.getViewport({scale: scale});
+        canvasLeft.width = Math.floor(viewportL.width);
+        canvasLeft.height = Math.floor(viewportL.height);
+        canvasLeft.style.display = '';
+        const ctxL = canvasLeft.getContext('2d');
+        page.render({canvasContext: ctxL, viewport: viewportL});
+
+        if (pagesToShow === 2){
+          const nextPageNum = pageNum + 1;
+          pdfDoc.getPage(nextPageNum).then(function(pageR){
+            const viewportR = pageR.getViewport({scale: scale});
+            canvasRight.width = Math.floor(viewportR.width);
+            canvasRight.height = Math.floor(viewportR.height);
+            canvasRight.style.display = '';
+            const ctxR = canvasRight.getContext('2d');
+            pageR.render({canvasContext: ctxR, viewport: viewportR});
+          });
+        } else {
+          canvasRight.style.display = 'none';
+        }
+
+        document.getElementById('page_num').textContent = pageNum;
+        document.getElementById('page_count').textContent = pdfDoc.numPages;
+
+        if (window.pdfbus && window.pdfbus.onPageChange) {
+          try { window.pdfbus.onPageChange(pageNum); } catch(e){}
+        }
+      });
+    }
+
+    loadingTask.promise.then(function(pdf){
+      pdfDoc = pdf;
+      document.getElementById('page_count').textContent = pdf.numPages;
+
+      if (window.pdfbus && window.pdfbus.onDocLoaded) {
+        try { window.pdfbus.onDocLoaded(pdfId || src, pdf.numPages); } catch(e){}
+      }
+
+      renderPages();
+    }, function(reason){
+      document.body.innerHTML = '<pre style="padding:16px; color:#f99">Error loading PDF: '+String(reason)+'</pre>';
+    });
+
+    document.getElementById('prev').addEventListener('click', function(){
+      const step = (canvasRight.style.display !== 'none') ? 2 : 1;
+      pageNum = Math.max(1, pageNum - step);
+      renderPages();
+    });
+    document.getElementById('next').addEventListener('click', function(){
+      const step = (canvasRight.style.display !== 'none') ? 2 : 1;
+      pageNum = Math.min(pdfDoc.numPages, pageNum + step);
+      renderPages();
+    });
+    document.getElementById('open').addEventListener('click', function(){ window.open(src, '_blank'); });
+    document.getElementById('toggleSpread').addEventListener('click', function(){
+      if (spread === 1) spread = null;
+      else if (spread === 2) spread = 1;
+      else spread = 2;
+      renderPages();
+    });
+
+    window.addEventListener('resize', function(){ renderPages(); });
+    window.addEventListener('beforeunload', function(){
+      if (window.pdfbus && window.pdfbus.onViewEnd) {
+        try{ window.pdfbus.onViewEnd(); }catch(e){}
+      }
+    });
+
+    // ---- PentaSign wiring ----
+    const sofiInput   = document.getElementById('sofiInput');
+    const btnSign     = document.getElementById('btnSign');
+    const btnCopy     = document.getElementById('btnCopyBundle');
+    const signStatus  = document.getElementById('signStatus');
+    const bundleOut   = document.getElementById('bundleOutput');
+    const patternBox  = document.getElementById('patternSvgBox');
+
+    function setStatus(msg, ok) {
+      signStatus.textContent = msg || '';
+      signStatus.style.color = ok ? '#6cff93' : '#ff8181';
+    }
+
+    async function sha256(buffer) {
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        return new Uint8Array(hashBuffer);
+    }
+    
+    // Mock implementations for PentaSignClient and PentaPattern
+    window.PentaSignClient = {
+        signPdfWithSofi: async function(pdfUrl, sofi) {
+            setStatus('Fetching PDF for hashing...', true);
+            const response = await fetch(pdfUrl);
+            if (!response.ok) throw new Error('Failed to fetch PDF');
+            const pdfBytes = await response.arrayBuffer();
+
+            setStatus('Generating keys and signing...', true);
+            
+            // This is a mock implementation and does not use real crypto
+            const docHash = await sha256(pdfBytes);
+            const docHashHex = Array.from(docHash).map(b => b.toString(16).padStart(2, '0')).join('');
+
+            const bundle = {
+                publicKey: 'mockPublicKey_' + Date.now(),
+                signature: 'mockSignature_' + btoa(sofi + docHashHex),
+                docHash: docHashHex,
+                sofi: sofi,
+            };
+
+            const pattern = {
+                seed: sofi + docHashHex,
+            };
+
+            return { bundle, pattern };
+        }
+    };
+    
+    window.PentaPattern = {
+        patternToSVG: function(pattern, size) {
+            const seed = pattern.seed;
+            let hash = 0;
+            for (let i = 0; i < seed.length; i++) {
+                const char = seed.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+
+            let svg = `<svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="background-color: #1a1a1a; border-radius: 5px;">`;
+            const center = 50;
+            const radius = 45;
+            const sides = 5;
+            
+            const points = [];
+            for(let i=0; i<sides; i++){
+                const angle = (i / sides) * 2 * Math.PI - Math.PI / 2;
+                points.push({
+                    x: center + radius * Math.cos(angle),
+                    y: center + radius * Math.sin(angle)
+                });
+            }
+
+            for(let i=0; i<sides; i++){
+                const p1 = points[i];
+                const p2 = points[(i + 1) % sides];
+                const color = `hsl(${(hash + i*60) % 360}, 70%, 60%)`;
+                svg += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${color}" stroke-width="2" />`;
+            }
+
+            for(let i=0; i<sides * 2; i++){
+                const r = radius * (0.4 + (Math.abs(hash >> (i*2)) % 30)/100 );
+                const angle = (i / (sides*2)) * 2 * Math.PI;
+                const cx = center + r * Math.cos(angle);
+                const cy = center + r * Math.sin(angle);
+                const color = `hsl(${(hash + i*30) % 360}, 80%, 70%)`;
+                svg += `<circle cx="${cx}" cy="${cy}" r="${2 + (hash % 3)}" fill="${color}" />`
+            }
+
+            svg += `</svg>`;
+            return svg;
+        }
+    };
+
+
+    btnSign.addEventListener('click', async () => {
+      try {
+        const sofi = (sofiInput.value || '').trim();
+        if (!sofi) {
+          setStatus('Please enter a SOFI / ID first.', false);
+          return;
+        }
+        setStatus('Signing…', true);
+        bundleOut.value = '';
+        patternBox.innerHTML = '';
+
+        const result = await window.PentaSignClient.signPdfWithSofi(src, sofi);
+        const bundle = result.bundle;
+        const pattern = result.pattern;
+
+        bundleOut.value = JSON.stringify(bundle, null, 2);
+
+        const svg = window.PentaPattern.patternToSVG(pattern, 220);
+        patternBox.innerHTML = svg;
+
+        setStatus('Mock signature generated. Bundle + pattern ready.', true);
+        console.log('PentaSign bundle:', bundle);
+      } catch (e) {
+        setStatus('Sign error: ' + e.message, false);
+        console.error('PentaSign sign error', e);
+      }
+    });
+
+    btnCopy.addEventListener('click', async () => {
+      const text = bundleOut.value.trim();
+      if (!text) {
+        setStatus('Nothing to copy yet. Sign first.', false);
+        return;
+      }
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          setStatus('Bundle JSON copied to clipboard.', true);
+        } else {
+          setStatus('Clipboard API not available in this browser.', false);
+        }
+      } catch (e) {
+        setStatus('Failed to copy: ' + e.message, false);
+      }
+    });
+
+  })();
+  </script>
+</body>
+</html>
