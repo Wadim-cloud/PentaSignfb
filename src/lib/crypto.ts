@@ -42,39 +42,44 @@ function bufferToBase64(buffer: ArrayBuffer): string {
  * This replaces the original WASM-based SVG generation.
  */
 function generateDynamicSvgFromHash(hash: string): string {
-  const size = 220;
-  const center = size / 2;
-  const numPoints = 8;
-  const radius = size * 0.4;
+    const size = 220;
+    const center = size / 2;
+    const numShapes = 12;
+    const maxRadius = size * 0.45;
 
-  const points: { x: number; y: number }[] = [];
-  for (let i = 0; i < numPoints; i++) {
-    const angle = (i / numPoints) * 2 * Math.PI;
-    points.push({
-      x: center + radius * Math.cos(angle),
-      y: center + radius * Math.sin(angle),
-    });
-  }
+    const colors = ["#C69572", "#8A9BA8", "#F2F4F6", "#5A6B7B"];
+    let svgElements = '';
 
-  const colors = ["#C69572", "#F2F4F6", "#8A9BA8", "#5A6B7B"];
-  let svgPaths = '';
+    // Generate concentric rings and dots
+    for (let i = 0; i < numShapes; i++) {
+        const hashSegment = hash.substring(i * 4, (i + 1) * 4);
+        if (hashSegment.length < 4) continue;
 
-  // Use parts of the hash to decide which points to connect
-  for (let i = 0; i < hash.length - 2; i += 3) {
-    const p1Index = parseInt(hash.substring(i, i + 1), 16) % numPoints;
-    const p2Index = parseInt(hash.substring(i + 1, i + 2), 16) % numPoints;
-    const colorIndex = parseInt(hash.substring(i + 2, i + 3), 16) % colors.length;
+        const p1 = parseInt(hashSegment.substring(0, 2), 16) / 255;
+        const p2 = parseInt(hashSegment.substring(2, 4), 16) / 255;
 
-    if (p1Index !== p2Index) {
-      const p1 = points[p1Index];
-      const p2 = points[p2Index];
-      svgPaths += `<path d="M${p1.x},${p1.y} L${p2.x},${p2.y}" stroke="${colors[colorIndex]}" stroke-width="1.5" stroke-linecap="round"/>`;
+        const angle = p1 * 2 * Math.PI;
+        const radius = (0.2 + p2 * 0.8) * maxRadius; // Start from 20% of max radius
+        const x = center + radius * Math.cos(angle);
+        const y = center + radius * Math.sin(angle);
+
+        const colorIndex = (i % colors.length);
+
+        // Alternate between rings and dots
+        if (i % 3 === 0) { // Ring
+            const ringRadius = 5 + (p1 * 10);
+            svgElements += `<circle cx="${x}" cy="${y}" r="${ringRadius}" stroke="${colors[colorIndex]}" stroke-width="1.5" fill="none" />`;
+            svgElements += `<circle cx="${x}" cy="${y}" r="${ringRadius * 0.5}" fill="white" />`; // Inner dot
+        } else { // Dot
+            const dotRadius = 1 + (p2 * 3);
+            const color = i % 5 === 0 ? "white" : colors[colorIndex];
+            svgElements += `<circle cx="${x}" cy="${y}" r="${dotRadius}" fill="${color}" />`;
+        }
     }
-  }
 
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="${size}" height="${size}" fill="#050505"/>
-${svgPaths}
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${size}" height="${size}" fill="hsl(var(--background))"/>
+${svgElements}
 </svg>`;
 }
 

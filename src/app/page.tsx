@@ -17,9 +17,9 @@ const signatureImage = PlaceHolderImages.find(p => p.id === 'signature-1')!;
 export default function HomePage() {
   return (
     <div className="container mx-auto p-0">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <Card className="h-full">
+          <Card className="h-full bg-card/50">
             <CardHeader>
               <CardTitle>Document Preview</CardTitle>
               <CardDescription>
@@ -27,14 +27,14 @@ export default function HomePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex items-center justify-center p-4">
-              <div className="relative w-full aspect-[8.5/11] max-w-2xl border-2 border-dashed rounded-lg flex items-center justify-center overflow-hidden bg-muted/40">
+              <div className="relative w-full aspect-[8.5/11] max-w-2xl border-2 border-dashed border-border/50 rounded-lg flex items-center justify-center overflow-hidden bg-background/50">
                 <Image
                   src={documentImage.imageUrl}
                   alt={documentImage.description}
                   data-ai-hint={documentImage.imageHint}
                   width={800}
                   height={1100}
-                  className="object-contain p-4"
+                  className="object-contain p-4 opacity-70"
                   priority
                 />
                 <div className="absolute bottom-16 right-16">
@@ -44,7 +44,7 @@ export default function HomePage() {
                     data-ai-hint={signatureImage.imageHint}
                     width={150}
                     height={75}
-                    className="opacity-75"
+                    className="opacity-75 invert-0 dark:invert"
                   />
                 </div>
               </div>
@@ -62,22 +62,23 @@ export default function HomePage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <p className="text-sm font-medium">Visual Signature</p>
-                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-muted/20">
+                <p className="text-sm font-medium text-foreground/80">Visual Signature</p>
+                <div className="border-2 border-dashed border-border/50 rounded-lg p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-card/50">
                   <Image
                     src={signatureImage.imageUrl}
                     alt={signatureImage.description}
                     data-ai-hint={signatureImage.imageHint}
                     width={200}
                     height={100}
+                    className="invert-0 dark:invert"
                   />
-                  <Button variant="link" className="mt-2 text-accent">
+                  <Button variant="link" className="mt-2 text-accent-foreground/80">
                     Change Signature
                   </Button>
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-medium">Cryptographic Key</p>
+                <p className="text-sm font-medium text-foreground/80">Cryptographic Key</p>
                 <p className="text-xs text-muted-foreground bg-muted p-3 rounded-md font-mono break-all leading-relaxed">
                   -----BEGIN PGP PRIVATE KEY BLOCK-----
                   <br />
