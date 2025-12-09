@@ -1,7 +1,6 @@
 {
-  "name": "PentaSign",
-  "id": "pentasign-plugin-v2",
-  "api": "1.0.0",
+  "name": "PentaSign Plugin",
+  "id": "pentasign-plugin",
   "main": "code.js",
   "ui": "ui.html",
   "editorType": ["penpot"],

@@ -37,6 +37,14 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [
     'https://6000-firebase-studio-1765318285740.cluster-p5o54ufozbgxywgwqxykwgahws.cloudworkstations.dev',
   ],
+  async rewrites() {
+    return [
+      {
+        source: '/penpot-plugin/:path*',
+        destination: 'http://localhost:9002/penpot-plugin/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

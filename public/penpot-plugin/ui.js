@@ -1,150 +1,100 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const tabs = document.querySelectorAll('.tab-button');
-  const tabContents = document.querySelectorAll('.tab-content');
-  const statusArea = document.getElementById('status-area');
-  const renderBtn = document.getElementById('render-selection-btn');
-  const renderPreviewArea = document.getElementById('render-preview-area');
-  const renderHtmlArea = document.getElementById('render-html-area');
-  const renderTabs = document.querySelectorAll('.render-tab-button');
-  const renderTabContents = document.querySelectorAll('.render-tab-content');
+const tabs = document.querySelectorAll('.tab-button');
+const tabContents = document.querySelectorAll('.tab-content');
+const renderSelectionButton = document.getElementById('render-selection');
+const htmlOutput = document.getElementById('html-output');
+const previewContainer = document.getElementById('preview-container');
 
-  // Main tabs
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
 
-      const target = tab.getAttribute('data-tab');
-      tabContents.forEach(content => {
-        content.id === target
-          ? content.classList.add('active')
-          : content.classList.remove('active');
-      });
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const target = tab.getAttribute('data-tab');
+
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    tabContents.forEach(content => {
+      content.classList.remove('active');
+      if (content.id === target) {
+        content.classList.add('active');
+      }
     });
   });
+});
 
-  // Render tabs
-  renderTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      renderTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
+// Request selection from Penpot when the render tab is clicked or button is clicked
+renderSelectionButton.addEventListener('click', () => {
+  parent.postMessage({ pluginMessage: { type: 'get-selection' } }, '*');
+});
 
-      const target = tab.getAttribute('data-render-tab');
-      renderTabContents.forEach(content => {
-        content.id === target
-          ? content.classList.add('active')
-          : content.classList.remove('active');
-      });
-    });
-  });
 
-  function showStatus(message, type = 'info') {
-    if (!statusArea) return;
-    statusArea.textContent = message;
-    statusArea.className = type; // 'success' or 'error'
-  }
+// Listen for messages from the plugin's main code (code.js)
+window.addEventListener('message', event => {
+  const message = event.data.pluginMessage;
+  if (message.type === 'selection-change') {
+    if (message.data.length > 0) {
+      const rendered = renderShapes(message.data);
+      htmlOutput.textContent = rendered.html;
+      previewContainer.innerHTML = rendered.html;
 
-  // Listen for messages from Penpot
-  window.addEventListener('message', event => {
-    const message = event.data;
-    if (message && message.type === 'selection-change') {
-      handleSelectionChange(message.data);
+    } else {
+      htmlOutput.textContent = 'No shapes selected.';
+      previewContainer.innerHTML = '<p>No shapes selected.</p>';
     }
-  });
-
-  if (renderBtn) {
-    renderBtn.addEventListener('click', () => {
-      // Ask Penpot for the current selection
-      parent.postMessage({ type: 'get-selection' }, '*');
-    });
   }
+});
 
-  function handleSelectionChange(shapes) {
-    if (!renderPreviewArea || !renderHtmlArea) return;
-    
-    if (!shapes || shapes.length === 0) {
-      renderPreviewArea.innerHTML = '<p>No shapes selected in Penpot.</p>';
-      renderHtmlArea.textContent = '';
-      return;
+
+function renderShapes(shapes) {
+    let html = '';
+    for (const shape of shapes) {
+        html += renderShape(shape);
     }
-    
-    // Clear previous render
-    renderPreviewArea.innerHTML = '';
+    return { html };
+}
 
-    const container = document.createElement('div');
-    container.style.position = 'relative';
-    container.style.width = '100%';
-    container.style.height = '100%';
+function renderShape(shape) {
+    if (!shape.visible) {
+        return '';
+    }
 
-    let renderedHtml = '';
-
-    shapes.forEach(shape => {
-      const { element, html } = renderShape(shape);
-      container.appendChild(element);
-      renderedHtml += html + '\n';
-    });
-
-    renderPreviewArea.appendChild(container);
-    renderHtmlArea.textContent = renderedHtml;
-  }
-  
-  function renderShape(shape) {
-      const el = document.createElement('div');
-      
-      const styles = {
+    const styles = {
         position: 'absolute',
         left: `${shape.x}px`,
         top: `${shape.y}px`,
         width: `${shape.width}px`,
         height: `${shape.height}px`,
         opacity: shape.opacity,
-        transform: `rotate(${shape.rotation || 0}deg)`,
-        'border-radius': `${shape.borderRadius || 0}px`,
-        ...(shape.blocked && { 'pointer-events': 'none' }),
-      };
+        transform: `rotate(${shape.rotation}deg)`,
+        'border-radius': `${shape.borderRadius}px`,
+        'mix-blend-mode': shape.blendMode,
+    };
 
-      // Fills (background)
-      if (shape.fills && shape.fills.length > 0) {
-          const fill = shape.fills[0]; // Simple case: use the first fill
-          if (fill.type === 'color') {
-              styles['background-color'] = `rgba(${fill.color.r}, ${fill.color.g}, ${fill.color.b}, ${fill.color.a})`;
-          }
-      }
+    if (shape.fills && shape.fills.length > 0) {
+        const fill = shape.fills[0]; // Assuming one fill for simplicity
+        if (fill.type === 'solid') {
+             styles['background-color'] = `rgba(${fill.color.r * 255}, ${fill.color.g * 255}, ${fill.color.b * 255}, ${fill.color.a})`;
+        }
+    }
+    
+    if (shape.strokes && shape.strokes.length > 0) {
+        const stroke = shape.strokes[0]; // Assuming one stroke
+         styles.border = `${stroke.strokeWidth}px ${stroke.strokeStyle} rgba(${stroke.color.r * 255}, ${stroke.color.g * 255}, ${stroke.color.b * 255}, ${stroke.color.a})`;
+    }
+    
+    if (shape.shadows && shape.shadows.length > 0) {
+        const shadow = shape.shadows[0]; // Assuming one shadow
+        styles['box-shadow'] = `${shadow.shadowOffsetX}px ${shadow.shadowOffsetY}px ${shadow.shadowBlur}px rgba(${shadow.color.r * 255}, ${shadow.color.g * 255}, ${shadow.color.b * 255}, ${shadow.color.a})`;
+    }
 
-      // Strokes (border)
-      if (shape.strokes && shape.strokes.length > 0) {
-          const stroke = shape.strokes[0];
-          styles.border = `${stroke.width}px ${stroke.position} rgba(${stroke.color.r}, ${stroke.color.g}, ${stroke.color.b}, ${stroke.color.a})`;
-      }
 
-      // Shadows
-      if (shape.shadows && shape.shadows.length > 0) {
-          const shadowCss = shape.shadows.map(s => 
-              `${s.x}px ${s.y}px ${s.blur}px rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`
-          ).join(', ');
-          styles['box-shadow'] = shadowCss;
-      }
-      
-      let styleString = '';
-      for (const [key, value] of Object.entries(styles)) {
-          if (value !== undefined && value !== null) {
-              el.style[key] = value;
-              styleString += `${key}: ${value}; `;
-          }
-      }
+    const styleString = Object.entries(styles)
+        .map(([key, value]) => `${key}: ${value};`)
+        .join(' ');
+        
+    let childrenHtml = '';
+    if (shape.children && shape.children.length > 0) {
+        childrenHtml = renderShapes(shape.children).html;
+    }
 
-      let innerHtml = '';
-      if (shape.children && shape.children.length > 0) {
-          shape.children.forEach(child => {
-              const { element: childElement, html: childHtml } = renderShape(child);
-              el.appendChild(childElement);
-              innerHtml += '\n  ' + childHtml.replace(/\n/g, '\n  ');
-          });
-      }
-
-      const outerHtml = `<div style="${styleString.trim()}">${innerHtml}\n</div>`;
-
-      return { element: el, html: outerHtml };
-  }
-
-});
+    return `<div id="${shape.id}" style="${styleString}">${childrenHtml}</div>`;
+}
