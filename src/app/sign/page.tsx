@@ -278,7 +278,7 @@ export default function CreateSignaturePage() {
           >
             <AlertTitle className="capitalize">{status.type}</AlertTitle>
             <AlertDescription>{status.message}</AlertDescription>
-          </Aler>
+          </Alert>
         )}
       </div>
     </div>
