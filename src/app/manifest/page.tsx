@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -33,6 +33,15 @@ const manifestSchema = z.object({
   ui: z.string().min(1, 'UI file is required'),
 });
 
+const defaultManifest = {
+  name: 'PentaSign Plugin',
+  id: 'pentasign-plugin',
+  api: '1.0.0',
+  main: 'code.js',
+  ui: 'ui.html',
+  editorType: ['penpot'],
+};
+
 export default function ManifestGeneratorPage() {
   const [manifestJson, setManifestJson] = useState('');
   const { toast } = useToast();
@@ -40,25 +49,35 @@ export default function ManifestGeneratorPage() {
   const form = useForm<z.infer<typeof manifestSchema>>({
     resolver: zodResolver(manifestSchema),
     defaultValues: {
-      name: 'PentaSign Plugin',
-      id: 'pentasign-plugin',
-      api: '1.0.0',
-      main: 'dist/code.js',
-      ui: 'dist/ui.html',
+      name: defaultManifest.name,
+      id: defaultManifest.id,
+      api: defaultManifest.api,
+      main: defaultManifest.main,
+      ui: defaultManifest.ui,
     },
   });
 
-  function onSubmit(values: z.infer<typeof manifestSchema>) {
+  function generateManifest(values: z.infer<typeof manifestSchema>) {
     const manifest = {
       name: values.name,
       id: values.id,
       api: values.api,
       main: values.main,
       ui: values.ui,
-      editorType: ['penpot'],
+      editorType: defaultManifest.editorType,
     };
     const jsonString = JSON.stringify(manifest, null, 2);
     setManifestJson(jsonString);
+  }
+
+  useEffect(() => {
+    generateManifest(form.getValues());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+  function onSubmit(values: z.infer<typeof manifestSchema>) {
+    generateManifest(values);
     toast({
       title: 'Manifest Generated',
       description: 'You can now copy the JSON content.',
@@ -78,108 +97,53 @@ export default function ManifestGeneratorPage() {
     <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 p-0">
       <Card>
         <CardHeader>
-          <CardTitle>Manifest Generator</CardTitle>
+          <CardTitle>Plugin Manifest</CardTitle>
           <CardDescription>
-            Fill in the details to generate your plugin&apos;s manifest.json.
+            This is the `manifest.json` for your Penpot plugin.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Plugin Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <div className="space-y-4">
+             <div className="relative">
+              <Textarea
+                readOnly
+                value={manifestJson}
+                className="min-h-[360px] font-mono text-sm bg-muted/50"
+                placeholder="Generated JSON will appear here..."
               />
-              <FormField
-                control={form.control}
-                name="id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Plugin ID</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="api"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>API Version</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="main"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Main file (code.js path)</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="ui"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>UI file (ui.html path)</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full">
-                <FileJson className="mr-2 h-4 w-4" />
-                Generate Manifest
-              </Button>
-            </form>
-          </Form>
+              {manifestJson && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:bg-background"
+                  onClick={copyToClipboard}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <Alert>
+                <FileJson className="h-4 w-4" />
+                <AlertTitle>How to use this plugin</AlertTitle>
+                <AlertDescription>
+                    To install this plugin in Penpot, go to the plugins section and choose &quot;Import plugin&quot;. You can import directly from this URL: 
+                    <pre className="mt-2 p-2 bg-muted rounded-md text-xs overflow-x-auto">{`${typeof window !== 'undefined' ? window.location.origin : ''}/penpot-plugin/manifest.json`}</pre>
+                </AlertDescription>
+            </Alert>
+          </div>
         </CardContent>
       </Card>
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Generated manifest.json</h3>
-        <div className="relative">
-          <Textarea
-            readOnly
-            value={manifestJson}
-            className="min-h-[300px] font-mono text-sm bg-muted/50"
-            placeholder="Generated JSON will appear here..."
-          />
-          {manifestJson && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:bg-background"
-              onClick={copyToClipboard}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
+       <Card>
+        <CardHeader>
+          <CardTitle>Plugin UI Preview</CardTitle>
+          <CardDescription>
+            This is a preview of the plugin&apos;s UI that will run inside Penpot.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <iframe src="/penpot-plugin/ui.html" className="w-full h-[480px] border rounded-md bg-white"/>
+        </CardContent>
+      </Card>
     </div>
   );
 }
