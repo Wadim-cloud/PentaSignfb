@@ -1,0 +1,219 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --background: #1a1a1a;
+    --foreground: #f2f2f2;
+    --primary: #5a9cf8;
+    --primary-foreground: #111;
+    --muted: #2a2a2a;
+    --muted-foreground: #a0a0a0;
+    --border: #333;
+    --radius: 6px;
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--background);
+    color: var(--foreground);
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+header h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+header p {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.tab-button:hover {
+    color: var(--foreground);
+}
+
+.tab-button.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+main {
+    flex-grow: 1;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.description {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 8px 12px;
+    background-color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--foreground);
+    font-family: var(--font-family);
+    font-size: 0.875rem;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(90, 156, 248, 0.3);
+}
+
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--primary);
+    border: none;
+    border-radius: var(--radius);
+    color: var(--primary-foreground);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+button:hover {
+    background-color: #77b4fc;
+}
+
+button:disabled {
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    cursor: not-allowed;
+}
+
+.result-area {
+    margin-top: 24px;
+    padding: 16px;
+    background-color: var(--muted);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.result-area h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.result-area p {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+}
+
+.output-group {
+    margin-top: 16px;
+}
+
+.output-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+#visual-signature-svg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: var(--radius);
+    min-height: 100px;
+}
+
+#visual-signature-svg svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+#verify-result.success {
+    border-color: #2f855a;
+    background-color: rgba(47, 133, 90, 0.1);
+}
+
+#verify-result.error {
+    border-color: #c53030;
+    background-color: rgba(197, 48, 48, 0.1);
+}
+
+#verify-result.success h2 { color: #38a169; }
+#verify-result.error h2 { color: #e53e3e; }
+
+
+footer {
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: 16px;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    text-align: center;
+}

@@ -3,114 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PentaSign Plugin</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-            background-color: #f7f7f7;
-            color: #333;
-            margin: 0;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            height: 100vh;
-            box-sizing: border-box;
-        }
-
-        h1 {
-            font-size: 1.25rem;
-            margin: 0;
-        }
-
-        .card {
-            background-color: #fff;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        label {
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-
-        input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 0.25rem;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-        
-        button {
-            background-color: #3d8bfd;
-            color: white;
-            border: none;
-            padding: 0.75rem;
-            border-radius: 0.25rem;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        button:hover {
-            background-color: #2a72d7;
-        }
-
-        .output {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        textarea {
-            width: 100%;
-            flex-grow: 1;
-            resize: none;
-            border: 1px solid #ccc;
-            border-radius: 0.25rem;
-            padding: 0.5rem;
-            box-sizing: border-box;
-            font-family: monospace;
-        }
-
-    </style>
+    <title>PentaSign</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="card">
-        <h1>PentaSign</h1>
+    <div id="app">
+        <header>
+            <h1>PentaSign</h1>
+            <p>Cryptographic & Visual Signatures</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab-button active" data-tab="create">Create Signature</button>
+            <button class="tab-button" data-tab="verify">Verify</button>
+        </div>
+
+        <main>
+            <!-- Create Signature Tab -->
+            <div id="create" class="tab-content active">
+                <p class="description">Generate a new signature for a selected shape.</p>
+                <form id="create-form">
+                    <div class="form-group">
+                        <label for="sofi">SOFI / ID</label>
+                        <input type="text" id="sofi" name="sofi" placeholder="e.g., 111111111" required>
+                    </div>
+                    <button type="submit" id="create-sig-btn">Generate Signature</button>
+                </form>
+                <div id="create-result" class="result-area" style="display: none;">
+                    <h2>Signature Created</h2>
+                    <p>The signature has been attached to the selected shape.</p>
+                    <div class="output-group">
+                        <label>Visual Signature</label>
+                        <div id="visual-signature-svg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verify Signature Tab -->
+            <div id="verify" class="tab-content">
+                <p class="description">Verify the signature of a selected shape.</p>
+                <form id="verify-form">
+                    <button type="submit" id="verify-sig-btn">Verify Selected Shape</button>
+                </form>
+                <div id="verify-result" class="result-area" style="display: none;">
+                    <!-- Verification result will be shown here -->
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <div id="status">Ready</div>
+        </footer>
     </div>
-
-    <div class="card form-group">
-        <label for="sofi">SOFI / ID</label>
-        <input type="text" id="sofi" placeholder="e.g., 111111111">
-    </div>
-
-    <button id="sign-button">Sign Selected Shape</button>
-
-    <div class="card output">
-        <label for="signature-bundle">Signature Bundle</label>
-        <textarea id="signature-bundle" readonly placeholder="Signature will appear here..."></textarea>
-    </div>
-
-    <script>
-        // Placeholder for plugin logic
-        const signButton = document.getElementById('sign-button');
-        signButton.onclick = () => {
-            parent.postMessage({ pluginMessage: { type: 'sign-shape' } }, '*');
-        };
-    </script>
+    <script src="ui.js"></script>
 </body>
 </html>
