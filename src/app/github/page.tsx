@@ -8,18 +8,27 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Github, GitBranch, AlertCircle } from 'lucide-react';
+import { Github, GitBranch, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 export default function GithubPage() {
   const { toast } = useToast();
+  const [pushed, setPushed] = useState(false);
 
   const handlePush = () => {
     toast({
       title: 'Pushing to GitHub...',
       description: 'This is a simulation. Your code is not actually being pushed.',
     });
+    setTimeout(() => {
+      setPushed(true);
+       toast({
+        title: 'Successfully pushed to main branch!',
+        description: 'Your changes are now on GitHub.',
+      });
+    }, 1500);
   };
 
   return (
@@ -38,9 +47,16 @@ export default function GithubPage() {
               <p className="text-sm font-medium leading-none">
                 Current Branch: `main`
               </p>
-              <p className="text-sm text-muted-foreground">
-                No new changes to commit.
-              </p>
+              {pushed ? (
+                 <p className="text-sm text-green-600 dark:text-green-500 flex items-center">
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Up to date.
+                </p>
+              ) : (
+                 <p className="text-sm text-muted-foreground">
+                  15 uncommitted changes.
+                </p>
+              )}
             </div>
           </div>
           <Alert>
@@ -53,9 +69,9 @@ export default function GithubPage() {
           </Alert>
         </CardContent>
         <CardFooter>
-          <Button className="w-full" onClick={handlePush}>
+          <Button className="w-full" onClick={handlePush} disabled={pushed}>
             <Github className="mr-2 h-4 w-4" />
-            Push to GitHub
+            {pushed ? 'Pushed Successfully' : 'Push to GitHub'}
           </Button>
         </CardFooter>
       </Card>
