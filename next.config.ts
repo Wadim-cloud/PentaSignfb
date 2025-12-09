@@ -30,6 +30,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    config.experiments = { ...config.experiments, topLevelAwait: true };
+    config.output.webassemblyModuleFilename =
+      (isServer ? '../' : '') + 'static/wasm/[modulehash].wasm';
+    return config;
+  },
 };
 
 export default nextConfig;
