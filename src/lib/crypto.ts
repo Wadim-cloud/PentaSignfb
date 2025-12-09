@@ -37,13 +37,44 @@ function bufferToBase64(buffer: ArrayBuffer): string {
   return window.btoa(binary);
 }
 
-// A placeholder SVG since the original generation logic was in the removed WASM.
-function placeholderSvg() {
-    const size = 220;
-    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none" xmlns="http://www.w3.org/2000/svg">
+/**
+ * Generates a deterministic, visually interesting SVG pattern based on a hash string.
+ * This replaces the original WASM-based SVG generation.
+ */
+function generateDynamicSvgFromHash(hash: string): string {
+  const size = 220;
+  const center = size / 2;
+  const numPoints = 8;
+  const radius = size * 0.4;
+
+  const points: { x: number; y: number }[] = [];
+  for (let i = 0; i < numPoints; i++) {
+    const angle = (i / numPoints) * 2 * Math.PI;
+    points.push({
+      x: center + radius * Math.cos(angle),
+      y: center + radius * Math.sin(angle),
+    });
+  }
+
+  const colors = ["#C69572", "#F2F4F6", "#8A9BA8", "#5A6B7B"];
+  let svgPaths = '';
+
+  // Use parts of the hash to decide which points to connect
+  for (let i = 0; i < hash.length - 2; i += 3) {
+    const p1Index = parseInt(hash.substring(i, i + 1), 16) % numPoints;
+    const p2Index = parseInt(hash.substring(i + 1, i + 2), 16) % numPoints;
+    const colorIndex = parseInt(hash.substring(i + 2, i + 3), 16) % colors.length;
+
+    if (p1Index !== p2Index) {
+      const p1 = points[p1Index];
+      const p2 = points[p2Index];
+      svgPaths += `<path d="M${p1.x},${p1.y} L${p2.x},${p2.y}" stroke="${colors[colorIndex]}" stroke-width="1.5" stroke-linecap="round"/>`;
+    }
+  }
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect width="${size}" height="${size}" fill="#050505"/>
-<circle cx="110" cy="110" r="50" stroke="#C69572" stroke-width="2"/>
-<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#F2F4F6" font-size="14">Signature Pattern</text>
+${svgPaths}
 </svg>`;
 }
 
@@ -105,10 +136,10 @@ export class WasmClient {
     // 5. Export public key to be stored
     const publicKeyBuffer = await crypto.subtle.exportKey("spki", keyPair.publicKey);
 
-    // 6. Generate a placeholder pattern and nonce
+    // 6. Generate a dynamic SVG pattern and a placeholder pattern object
     const maskNonce = Math.floor(Math.random() * 2**32);
     const pattern: Pattern = { nodes: [], edges: [] };
-    const svg = placeholderSvg();
+    const svg = generateDynamicSvgFromHash(docHash);
 
     // 7. Create the bundle
     const bundle: SignatureBundle = {
