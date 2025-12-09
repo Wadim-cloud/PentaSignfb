@@ -48,8 +48,8 @@ export default function CreateSignaturePage() {
   const [bundle, setBundle] = useState<SignatureBundle | null>(null);
   const [bundleJson, setBundleJson] = useState('');
   const [svgPattern, setSvgPattern] = useState('');
-  const [isWasmReady, setIsWasmReady] = useState(false);
-  const wasmClientRef = useRef<WasmClient | null>(null);
+  const [isCryptoReady, setIsCryptoReady] = useState(false);
+  const cryptoClientRef = useRef<WasmClient | null>(null);
 
   const form = useForm<SignFormValues>({
     resolver: zodResolver(formSchema),
@@ -59,20 +59,20 @@ export default function CreateSignaturePage() {
   });
 
   useEffect(() => {
-    async function initWasm() {
+    async function initCrypto() {
       try {
         const { WasmClient } = await import('@/lib/crypto');
-        wasmClientRef.current = await WasmClient.create();
-        setIsWasmReady(true);
+        cryptoClientRef.current = WasmClient.create();
+        setIsCryptoReady(true);
       } catch (error) {
-        console.error('Failed to load WASM module', error);
+        console.error('Failed to load crypto module', error);
         setStatus({
           message: 'Failed to load cryptographic module. Please refresh.',
           type: 'error',
         });
       }
     }
-    initWasm();
+    initCrypto();
   }, []);
 
   const fileToBytes = (file: File): Promise<Uint8Array> => {
@@ -85,7 +85,7 @@ export default function CreateSignaturePage() {
   };
 
   async function onSubmit(values: SignFormValues) {
-    if (!wasmClientRef.current) {
+    if (!cryptoClientRef.current) {
       setStatus({
         message: 'Cryptographic module not ready.',
         type: 'error',
@@ -108,7 +108,7 @@ export default function CreateSignaturePage() {
         type: 'info',
       });
 
-      const { bundle: signedBundle, svg } = await wasmClientRef.current.signPdf(pdfBytes, values.sofi);
+      const { bundle: signedBundle, svg } = await cryptoClientRef.current.signPdf(pdfBytes, values.sofi);
 
       setBundle(signedBundle);
       setBundleJson(JSON.stringify(signedBundle, null, 2));
@@ -139,7 +139,7 @@ export default function CreateSignaturePage() {
     });
   };
 
-  const isReady = isWasmReady && !isLoading;
+  const isReady = isCryptoReady && !isLoading;
 
   return (
     <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 p-0">
@@ -152,7 +152,7 @@ export default function CreateSignaturePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {!isWasmReady ? (
+          {!isCryptoReady ? (
             <div className="space-y-4">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
