@@ -108,3 +108,5 @@ export class WasmClient {
     return { bundle, pattern, svg };
   }
 }
+
+    

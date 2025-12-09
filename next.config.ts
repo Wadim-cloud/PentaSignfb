@@ -31,15 +31,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer, dev }) => {
+  webpack: (config, { isServer }) => {
     config.experiments = { ...config.experiments, asyncWebAssembly: true, topLevelAwait: true };
     
     config.module.rules.push({
       test: /\.wasm$/,
-      type: 'asset/resource',
-      generator: {
-        filename: 'static/wasm/[name].[hash][ext]',
-      },
+      type: "asset/resource",
     });
 
     return config;
@@ -47,3 +44,5 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+    
