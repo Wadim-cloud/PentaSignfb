@@ -224,7 +224,7 @@ export default function CreateSignaturePage() {
           <CardContent className="space-y-4">
             <div>
               <div className="flex justify-between items-center mb-2">
-                <FormLabel htmlFor="bundleOutput">Signature Bundle (JSON)</FormLabel>
+                <Label htmlFor="bundleOutput">Signature Bundle (JSON)</Label>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -243,7 +243,7 @@ export default function CreateSignaturePage() {
               />
             </div>
              <div>
-              <FormLabel>Visual Signature Pattern (SVG)</FormLabel>
+              <Label>Visual Signature Pattern (SVG)</Label>
               <div className="mt-2 w-full aspect-square rounded-lg border-2 border-dashed bg-muted/50 flex items-center justify-center overflow-hidden">
                 {isLoading && !svgPattern && (
                   <div className="text-center text-sm text-muted-foreground">
