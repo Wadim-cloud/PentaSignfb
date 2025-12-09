@@ -23,7 +23,8 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https'
+        ,
         hostname: 'picsum.photos',
         port: '',
         pathname: '/**',
@@ -31,31 +32,11 @@ const nextConfig: NextConfig = {
     ],
   },
   webpack: (config, { isServer, dev }) => {
-    // Await experiments.
     config.experiments = { ...config.experiments, asyncWebAssembly: true, topLevelAwait: true };
-
-    // Set the output for wasm files.
-    config.output.webassemblyModuleFilename = isServer
-      ? './../static/wasm/[modulehash].wasm'
-      : 'static/wasm/[modulehash].wasm';
-
-    // See https://webpack.js.org/configuration/resolve/#resolvefallback
-    config.resolve.fallback = { fs: false };
-
-    // Rule to handle wasm files.
+    
     config.module.rules.push({
       test: /\.wasm$/,
-      type: 'javascript/auto',
-      use: [
-        {
-          loader: 'file-loader',
-          options: {
-            publicPath: '/_next/static/wasm',
-            outputPath: 'static/wasm',
-            name: '[name].[hash].[ext]',
-          },
-        },
-      ],
+      type: 'asset/resource',
     });
 
     return config;
