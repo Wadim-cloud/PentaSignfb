@@ -1,13 +1,6 @@
 'use client';
 
-import init, {
-  build_pattern,
-  sign_payload,
-  public_from_private,
-  generate_keypair,
-} from './pentasign_crypto_wasm/pentasign_crypto_wasm';
-// The path is relative to the output directory, not the source.
-import wasmUrl from './pentasign_crypto_wasm/pentasign_crypto_wasm_bg.wasm';
+import init from './pentasign_crypto_wasm/pentasign_crypto_wasm';
 
 export interface KeyPair {
   privateKey: Uint8Array;
@@ -37,6 +30,7 @@ function bytesToBase64(bytes: Uint8Array): string {
 
 export class WasmClient {
   private static instance: WasmClient | null = null;
+  private static wasm: any | null = null;
   private constructor() {}
 
   public static async create(): Promise<WasmClient> {
@@ -44,9 +38,7 @@ export class WasmClient {
       return WasmClient.instance;
     }
     
-    // The wasmUrl is a result of the asset/resource rule in webpack config
-    // @ts-ignore
-    await init(wasmUrl);
+    WasmClient.wasm = await init();
     WasmClient.instance = new WasmClient();
     return WasmClient.instance;
   }
@@ -75,6 +67,17 @@ export class WasmClient {
     pdfBytes: Uint8Array,
     sofi: string
   ): Promise<{ bundle: SignatureBundle; pattern: Pattern; svg: string }> {
+    if (!WasmClient.wasm) {
+        throw new Error("WASM module not initialized");
+    }
+
+    const {
+        generate_keypair,
+        public_from_private,
+        sign_payload,
+        build_pattern
+    } = WasmClient.wasm;
+    
     // 1. Hash the document
     const docHash = await this.getDocHash(pdfBytes);
 
@@ -108,5 +111,3 @@ export class WasmClient {
     return { bundle, pattern, svg };
   }
 }
-
-    
