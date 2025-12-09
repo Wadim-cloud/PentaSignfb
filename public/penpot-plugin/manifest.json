@@ -1,10 +1,11 @@
 {
   "name": "PentaSign",
-  "description": "Visually and cryptographically sign documents within Penpot.",
+  "description": "Visually and cryptographically sign documents directly within Penpot.",
   "code": "/penpot-plugin/code.js",
-  "ui": "/",
+  "icon": "",
   "permissions": [
     "content:read",
-    "content:write"
+    "content:write",
+    "user:read"
   ]
 }

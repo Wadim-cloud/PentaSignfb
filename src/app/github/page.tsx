@@ -8,72 +8,125 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Github, GitBranch, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Github, GitBranch, CheckCircle2, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+
+const repoUrl = 'https://github.com/new'; // Replace with actual repo URL when available
 
 export default function GithubPage() {
   const { toast } = useToast();
-  const [pushed, setPushed] = useState(false);
 
-  const handlePush = () => {
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
     toast({
-      title: 'Pushing to GitHub...',
-      description: 'This is a simulation. Your code is not actually being pushed.',
+      title: 'Copied to clipboard!',
     });
-    setTimeout(() => {
-      setPushed(true);
-       toast({
-        title: 'Successfully pushed to main branch!',
-        description: 'Your changes are now on GitHub.',
-      });
-    }, 1500);
   };
 
+  const commands = [
+    {
+      description: 'Initialize a new Git repository',
+      command: 'git init -b main',
+    },
+    {
+      description: 'Add all files to the staging area',
+      command: 'git add .',
+    },
+    {
+      description: 'Commit your changes',
+      command: 'git commit -m "Initial commit"',
+    },
+    {
+      description:
+        'Add your new GitHub repository as the remote origin (replace with your repo URL)',
+      command:
+        'git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git',
+    },
+    {
+      description: 'Push your code to the main branch on GitHub',
+      command: 'git push -u origin main',
+    },
+  ];
+
   return (
-    <div className="container mx-auto max-w-2xl p-0">
+    <div className="container mx-auto max-w-4xl p-0">
       <Card>
         <CardHeader>
-          <CardTitle>Push to GitHub</CardTitle>
+          <CardTitle>Deploy to GitHub Pages</CardTitle>
           <CardDescription>
-            Transfer your plugin code to a GitHub repository.
+            Follow these steps to deploy your plugin to a live URL using GitHub
+            Actions and GitHub Pages.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div className="flex items-center space-x-4 rounded-md border p-4">
             <GitBranch className="h-6 w-6 text-muted-foreground" />
             <div className="flex-1 space-y-1">
               <p className="text-sm font-medium leading-none">
-                Current Branch: `main`
+                Continuous Integration & Deployment
               </p>
-              {pushed ? (
-                 <p className="text-sm text-green-600 dark:text-green-500 flex items-center">
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                  Up to date.
-                </p>
-              ) : (
-                 <p className="text-sm text-muted-foreground">
-                  15 uncommitted changes.
-                </p>
-              )}
+              <p className="text-sm text-green-600 dark:text-green-500 flex items-center">
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Workflow file created at{' '}
+                <Badge variant="secondary" className="ml-2">
+                  .github/workflows/deploy.yml
+                </Badge>
+              </p>
             </div>
           </div>
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Developer Preview</AlertTitle>
-            <AlertDescription>
-              This is a simulation. In a real application, this would connect to
-              your GitHub account and push the code.
-            </AlertDescription>
-          </Alert>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">
+              Step 1: Create a GitHub Repository
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              If you don't have a repository for this project yet, create a new one on GitHub.
+            </p>
+            <Button asChild>
+              <a href={repoUrl} target="_blank" rel="noopener noreferrer">
+                <Github className="mr-2 h-4 w-4" />
+                Create a new repository
+              </a>
+            </Button>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">
+              Step 2: Push Your Code
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Open a terminal in your project's root directory and run the
+              following commands.
+            </p>
+            <div className="space-y-2">
+              {commands.map((item, index) => (
+                <Alert key={index} className="font-mono text-sm">
+                  <AlertDescription className="flex justify-between items-center">
+                    <span>
+                      <span className="text-muted-foreground mr-2">$</span>
+                      {item.command}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => copyToClipboard(item.command)}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ))}
+            </div>
+          </div>
+           <div>
+            <h3 className="text-lg font-semibold mb-2">
+              Step 3: Enable GitHub Pages
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Once you've pushed your code, go to your repository's settings on GitHub. Navigate to the "Pages" section and select the source as "GitHub Actions". Your site will be deployed automatically.
+            </p>
+          </div>
         </CardContent>
-        <CardFooter>
-          <Button className="w-full" onClick={handlePush} disabled={pushed}>
-            <Github className="mr-2 h-4 w-4" />
-            {pushed ? 'Pushed Successfully' : 'Push to GitHub'}
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   );
