@@ -38,7 +38,9 @@ export class WasmClient {
       return WasmClient.instance;
     }
     
-    WasmClient.wasm = await init();
+    // Pass null to force wasm-bindgen to use the embedded base64 module
+    // instead of trying to fetch a URL.
+    WasmClient.wasm = await init(null);
     WasmClient.instance = new WasmClient();
     return WasmClient.instance;
   }
