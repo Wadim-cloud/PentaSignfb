@@ -1,1 +1,1 @@
-"use strict";(()=>{var t="/penpot-plugin/ui.html";penpot.ui.registerCommand("pentasign.sign",{label:"Sign document",async onexecute(){penpot.ui.open("PentaSign",t,{width:800,height:700})}});penpot.ui.on("message",e=>{if(console.log("Message from iframe:",e),e.type==="get-selection"){let n=penpot.selection.get();penpot.ui.sendMessage({type:"selection-change",data:n})}});penpot.selection.on("change",e=>{penpot.ui.sendMessage({type:"selection-change",data:e})});})();
+"use strict";(()=>{penpot.ui.open("PentaSign",penpot.ui.getPluginURL("index.html"),{width:800,height:600});})();
