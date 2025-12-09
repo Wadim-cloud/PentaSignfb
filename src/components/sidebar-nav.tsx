@@ -1,8 +1,9 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FileJson, FileSignature, Github, ShieldCheck, LogOut } from 'lucide-react';
+import { FileJson, FileSignature, Github, ShieldCheck, LogOut, PenSquare } from 'lucide-react';
 import {
   SidebarContent,
   SidebarFooter,
@@ -18,7 +19,8 @@ import { PentaSignLogo } from './pentasign-logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const navItems = [
-  { href: '/', label: 'Sign Document', icon: FileSignature },
+  { href: '/', label: 'Document', icon: FileSignature },
+  { href: '/sign', label: 'Create Signature', icon: PenSquare },
   { href: '/verify', label: 'Verify Signature', icon: ShieldCheck },
   { href: '/manifest', label: 'Generate Manifest', icon: FileJson },
   { href: '/github', label: 'Push to GitHub', icon: Github },
