@@ -7,7 +7,7 @@ import init, {
   generate_keypair,
 } from './pentasign_crypto_wasm/pentasign_crypto_wasm';
 // The path is relative to the output directory, not the source.
-import wasmUrl from './pentasign_crypto_wasm/pentasign_crypto_wasm_bg.wasm?module';
+import wasmUrl from './pentasign_crypto_wasm/pentasign_crypto_wasm_bg.wasm';
 
 export interface KeyPair {
   privateKey: Uint8Array;
@@ -44,7 +44,7 @@ export class WasmClient {
       return WasmClient.instance;
     }
     
-    // The wasmUrl is a result of the file-loader in webpack config
+    // The wasmUrl is a result of the asset/resource rule in webpack config
     // @ts-ignore
     await init(wasmUrl);
     WasmClient.instance = new WasmClient();
