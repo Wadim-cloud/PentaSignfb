@@ -45,6 +45,7 @@ const defaultManifest = {
 
 export default function ManifestGeneratorPage() {
   const [manifestJson, setManifestJson] = useState('');
+  const [origin, setOrigin] = useState('');
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof manifestSchema>>({
@@ -73,6 +74,7 @@ export default function ManifestGeneratorPage() {
 
   useEffect(() => {
     generateManifest(form.getValues());
+    setOrigin(window.location.origin);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -128,7 +130,7 @@ export default function ManifestGeneratorPage() {
                 <AlertTitle>How to use this plugin</AlertTitle>
                 <AlertDescription>
                     To install this plugin in Penpot, go to the plugins section and choose &quot;Import plugin&quot;. You can import directly from this URL: 
-                    <pre className="mt-2 p-2 bg-muted rounded-md text-xs overflow-x-auto">{`${typeof window !== 'undefined' ? window.location.origin : ''}/penpot-plugin/manifest.json`}</pre>
+                    <pre className="mt-2 p-2 bg-muted rounded-md text-xs overflow-x-auto">{`${origin}/penpot-plugin/manifest.json`}</pre>
                 </AlertDescription>
             </Alert>
           </div>
@@ -142,7 +144,7 @@ export default function ManifestGeneratorPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <iframe src="/penpot-plugin/ui.html" className="w-full h-[480px] border rounded-md bg-white"/>
+            <iframe src="/penpot-plugin/ui.html" className="w-full h-[555px] border rounded-md bg-white"/>
         </CardContent>
       </Card>
     </div>
