@@ -1,113 +1,170 @@
-import Image from 'next/image';
+
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Download, FileSignature, Upload } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Wand2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
-const documentImage = PlaceHolderImages.find(p => p.id === 'document-1')!;
-const signatureImage = PlaceHolderImages.find(p => p.id === 'signature-1')!;
+// Declare penpot and its types as globally available in the plugin environment
+declare const penpot: import('@penpot/plugin-types').Penpot;
+type Shape = import('@penpot/plugin-types').Shape;
+
+type RenderedShape = {
+  html: string;
+  css: string;
+};
 
 export default function HomePage() {
-  return (
-    <div className="container mx-auto p-0">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <Card className="h-full bg-card/50">
-            <CardHeader>
-              <CardTitle>Document Preview</CardTitle>
-              <CardDescription>
-                This is a preview of the document you are about to sign.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center justify-center p-4">
-              <div className="relative w-full aspect-[8.5/11] max-w-2xl border-2 border-dashed border-border/50 rounded-lg flex items-center justify-center overflow-hidden bg-background/50">
-                <Image
-                  src={documentImage.imageUrl}
-                  alt={documentImage.description}
-                  data-ai-hint={documentImage.imageHint}
-                  width={800}
-                  height={1100}
-                  className="object-contain p-4 opacity-70"
-                  priority
-                />
-                <div className="absolute bottom-16 right-16">
-                  <Image
-                    src={signatureImage.imageUrl}
-                    alt={signatureImage.description}
-                    data-ai-hint={signatureImage.imageHint}
-                    width={150}
-                    height={75}
-                    className="opacity-75 invert-0 dark:invert"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+  const [renderedShapes, setRenderedShapes] = useState<RenderedShape[]>([]);
+  const [selectedShapeCount, setSelectedShapeCount] = useState(0);
 
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Sign Document</CardTitle>
-              <CardDescription>
-                Apply your visual and cryptographic signature.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-foreground/80">Visual Signature</p>
-                <div className="border-2 border-dashed border-border/50 rounded-lg p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-card/50">
-                  <Image
-                    src={signatureImage.imageUrl}
-                    alt={signatureImage.description}
-                    data-ai-hint={signatureImage.imageHint}
-                    width={200}
-                    height={100}
-                    className="invert-0 dark:invert"
-                  />
-                  <Button variant="link" className="mt-2 text-accent-foreground/80">
-                    Change Signature
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-foreground/80">Cryptographic Key</p>
-                <p className="text-xs text-muted-foreground bg-muted p-3 rounded-md font-mono break-all leading-relaxed">
-                  -----BEGIN PGP PRIVATE KEY BLOCK-----
-                  <br />
-                  lQVYBFp3C+QBDAD...
-                  <br />
-                  ...Mwv/5E2g/0yX
-                  <br />
-                  -----END PGP PRIVATE KEY BLOCK-----
-                </p>
-              </div>
-            </CardContent>
-            <CardFooter className="flex-col gap-4 items-stretch">
-              <Button size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                <FileSignature className="mr-2 h-5 w-5" />
-                Sign & Store Document
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" className="w-full">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Load Document
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <Download className="mr-2 h-4 w-4" />
-                  Export Signed
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
-        </div>
+  // Access browser/penpot globals only after component mounts
+  const isShape = (obj: any): obj is Shape => (window as any).penpot?.isShape(obj);
+  const isText = (obj: any): obj is Shape => (window as any).penpot?.isText(obj);
+
+
+  const renderShapeToHtml = (shape: Shape, level = 0): RenderedShape => {
+    let styles: Record<string, string | number> = {
+      position: 'absolute',
+      left: `${shape.x}px`,
+      top: `${shape.y}px`,
+      width: `${shape.width}px`,
+      height: `${shape.height}px`,
+      opacity: shape.opacity,
+      transform: `rotate(${shape.rotation}deg)`,
+      'border-radius': `${shape.borderRadius}px`,
+    };
+
+    if (shape.fills && shape.fills.length > 0) {
+      const fill = shape.fills[0]; // Using the first fill
+      if (fill.type === 'solid') {
+        styles['background-color'] = `rgba(${fill.color.r}, ${fill.color.g}, ${fill.color.b}, ${fill.color.a})`;
+      }
+    }
+
+    if (shape.strokes && shape.strokes.length > 0) {
+      const stroke = shape.strokes[0];
+      styles['border'] = `${stroke.strokeWidth}px ${stroke.strokeStyle} rgba(${stroke.color.r}, ${stroke.color.g}, ${stroke.color.b}, ${stroke.color.a})`;
+    }
+    
+    if (isText(shape)) {
+        styles['color'] = styles['background-color'] || 'black';
+        styles['background-color'] = 'transparent';
+        styles['font-size'] = `${shape.fontSize}px`;
+        styles['font-family'] = `"${shape.fontFamily}"`;
+        styles['text-align'] = shape.textAlignHorizontal.toLowerCase();
+    }
+
+
+    const styleString = Object.entries(styles)
+      .map(([key, value]) => `${key}: ${value};`)
+      .join(' ');
+      
+    let childrenHtml = '';
+    if ('children' in shape && shape.children) {
+      childrenHtml = shape.children
+        .map(child => renderShapeToHtml(child as Shape, level + 1).html)
+        .join('');
+    }
+    
+    const content = isText(shape) ? shape.content : childrenHtml;
+
+    const html = `<div style="${styleString}">${content}</div>`;
+    const css = `/* No separate CSS for inline styles */`;
+
+
+    return { html, css };
+  };
+
+  const handleRenderSelection = () => {
+    if (typeof penpot !== 'undefined') {
+      penpot.selection.get().then(selection => {
+        const shapes = selection.filter(isShape);
+        const rendered = shapes.map(shape => renderShapeToHtml(shape));
+        setRenderedShapes(rendered);
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (typeof penpot !== 'undefined') {
+      const handleSelectionChange = (selection: readonly Shape[]) => {
+        setSelectedShapeCount(selection.filter(isShape).length);
+      };
+
+      penpot.selection.on('change', handleSelectionChange);
+      penpot.selection.get().then(handleSelectionChange);
+
+      return () => {
+        // Clean up the event listener when the component unmounts
+        // This is a placeholder as Penpot's API might not have a .off method
+      };
+    }
+  }, []);
+
+  return (
+    <div className="container mx-auto p-0 grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Penpot Renderer</CardTitle>
+            <CardDescription>
+              Select shapes on your Penpot canvas and click render to see them
+              as HTML and CSS.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={handleRenderSelection} className="w-full" size="lg">
+              <Wand2 className="mr-2" />
+              Render Selection
+              {selectedShapeCount > 0 && (
+                <Badge variant="secondary" className="ml-2">{selectedShapeCount}</Badge>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Generated Code</CardTitle>
+            <CardDescription>
+              The HTML and CSS for the selected shapes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <pre className="bg-muted p-4 rounded-lg text-xs overflow-auto max-h-96">
+              <code>
+                {renderedShapes.length > 0
+                  ? renderedShapes.map(s => s.html).join('\n')
+                  : 'Select shapes and click render...'}
+              </code>
+            </pre>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Live Preview</CardTitle>
+            <CardDescription>
+              A live preview of the rendered HTML elements.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div
+              className="relative w-full h-[600px] bg-background border-2 border-dashed rounded-lg overflow-hidden"
+              dangerouslySetInnerHTML={{ __html: renderedShapes.map(s => s.html).join('') }}
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
