@@ -1,102 +1,150 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const createTab = document.getElementById('tab-create');
-  const verifyTab = document.getElementById('tab-verify');
-  const createContent = document.getElementById('content-create');
-  const verifyContent = document.getElementById('content-verify');
+  const tabs = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-content');
+  const statusArea = document.getElementById('status-area');
+  const renderBtn = document.getElementById('render-selection-btn');
+  const renderPreviewArea = document.getElementById('render-preview-area');
+  const renderHtmlArea = document.getElementById('render-html-area');
+  const renderTabs = document.querySelectorAll('.render-tab-button');
+  const renderTabContents = document.querySelectorAll('.render-tab-content');
 
-  const createForm = document.getElementById('form-create');
-  const verifyForm = document.getElementById('form-verify');
-  
-  const statusContainer = document.getElementById('status-container');
-  const bundleOutput = document.getElementById('bundle-output');
-  const svgOutput = document.getElementById('svg-output');
-  const verificationResultContainer = document.getElementById('verification-result');
+  // Main tabs
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
 
-  // --- Tab Logic ---
-  createTab.addEventListener('click', () => {
-    createTab.classList.add('active');
-    verifyTab.classList.remove('active');
-    createContent.style.display = 'block';
-    verifyContent.style.display = 'none';
+      const target = tab.getAttribute('data-tab');
+      tabContents.forEach(content => {
+        content.id === target
+          ? content.classList.add('active')
+          : content.classList.remove('active');
+      });
+    });
   });
 
-  verifyTab.addEventListener('click', () => {
-    verifyTab.classList.add('active');
-    createTab.classList.remove('active');
-    verifyContent.style.display = 'block';
-    createContent.style.display = 'none';
+  // Render tabs
+  renderTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      renderTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const target = tab.getAttribute('data-render-tab');
+      renderTabContents.forEach(content => {
+        content.id === target
+          ? content.classList.add('active')
+          : content.classList.remove('active');
+      });
+    });
   });
-  
-  // --- Communication with Penpot Plugin ---
-  function sendMessageToPlugin(message) {
-    parent.postMessage({ pluginMessage: message }, '*');
+
+  function showStatus(message, type = 'info') {
+    if (!statusArea) return;
+    statusArea.textContent = message;
+    statusArea.className = type; // 'success' or 'error'
   }
 
-  window.addEventListener('message', (event) => {
-    const message = event.data.pluginMessage;
-    if (!message) return;
-    
-    console.log('Message from Penpot:', message);
-
-    if (message.type === 'selection-change') {
-      // Handle selection change from Penpot
-      // For example, update the UI with the number of selected items
-      const selectionCount = message.data.length;
-      updateStatus(`Selected items: ${selectionCount}`, 'info');
+  // Listen for messages from Penpot
+  window.addEventListener('message', event => {
+    const message = event.data;
+    if (message && message.type === 'selection-change') {
+      handleSelectionChange(message.data);
     }
   });
 
-
-  // --- Form Handling & UI Updates ---
-  function updateStatus(message, type = 'info') {
-    statusContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-  }
-  
-  function showVerificationResult(isAuthentic, details) {
-      verificationResultContainer.innerHTML = `
-        <div class="alert ${isAuthentic ? 'alert-success' : 'alert-error'}">
-          <strong>${isAuthentic ? 'Success' : 'Failure'}:</strong> ${details}
-        </div>
-      `;
+  if (renderBtn) {
+    renderBtn.addEventListener('click', () => {
+      // Ask Penpot for the current selection
+      parent.postMessage({ type: 'get-selection' }, '*');
+    });
   }
 
-  // Example: Request current selection when the UI loads
-  sendMessageToPlugin({ type: 'get-selection' });
-
-
-  // --- Placeholder Logic ---
-  // Replace this with actual calls to your crypto and verification functions
-  createForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    updateStatus('Generating signature (simulation)...', 'info');
+  function handleSelectionChange(shapes) {
+    if (!renderPreviewArea || !renderHtmlArea) return;
     
-    const formData = new FormData(createForm);
-    const sofi = formData.get('sofi');
+    if (!shapes || shapes.length === 0) {
+      renderPreviewArea.innerHTML = '<p>No shapes selected in Penpot.</p>';
+      renderHtmlArea.textContent = '';
+      return;
+    }
+    
+    // Clear previous render
+    renderPreviewArea.innerHTML = '';
 
-    // Simulate async operation
-    setTimeout(() => {
-        const fakeBundle = {
-            docHash: 'a1b2c3d4...',
-            sofi: sofi,
-            publicKey: 'abc...xyz',
-            signature: '123...789',
-            maskNonce: 12345
-        };
-        bundleOutput.value = JSON.stringify(fakeBundle, null, 2);
-        
-        svgOutput.innerHTML = `<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#f0f0f0"/><circle cx="50" cy="50" r="40" stroke="#333" stroke-width="2"/><text x="50" y="55" font-family="Arial" font-size="12" text-anchor="middle">SVG</text></svg>`;
+    const container = document.createElement('div');
+    container.style.position = 'relative';
+    container.style.width = '100%';
+    container.style.height = '100%';
 
-        updateStatus('Signature generated successfully (simulation).', 'success');
-    }, 1000);
-  });
+    let renderedHtml = '';
+
+    shapes.forEach(shape => {
+      const { element, html } = renderShape(shape);
+      container.appendChild(element);
+      renderedHtml += html + '\n';
+    });
+
+    renderPreviewArea.appendChild(container);
+    renderHtmlArea.textContent = renderedHtml;
+  }
   
-  verifyForm.addEventListener('submit', (e) => {
-     e.preventDefault();
-     updateStatus('Verifying signature (simulation)...', 'info');
-     
-     setTimeout(() => {
-        showVerificationResult(true, "The signature is authentic and the document has not been tampered with (simulation).")
-     }, 1000);
-  });
+  function renderShape(shape) {
+      const el = document.createElement('div');
+      
+      const styles = {
+        position: 'absolute',
+        left: `${shape.x}px`,
+        top: `${shape.y}px`,
+        width: `${shape.width}px`,
+        height: `${shape.height}px`,
+        opacity: shape.opacity,
+        transform: `rotate(${shape.rotation || 0}deg)`,
+        'border-radius': `${shape.borderRadius || 0}px`,
+        ...(shape.blocked && { 'pointer-events': 'none' }),
+      };
+
+      // Fills (background)
+      if (shape.fills && shape.fills.length > 0) {
+          const fill = shape.fills[0]; // Simple case: use the first fill
+          if (fill.type === 'color') {
+              styles['background-color'] = `rgba(${fill.color.r}, ${fill.color.g}, ${fill.color.b}, ${fill.color.a})`;
+          }
+      }
+
+      // Strokes (border)
+      if (shape.strokes && shape.strokes.length > 0) {
+          const stroke = shape.strokes[0];
+          styles.border = `${stroke.width}px ${stroke.position} rgba(${stroke.color.r}, ${stroke.color.g}, ${stroke.color.b}, ${stroke.color.a})`;
+      }
+
+      // Shadows
+      if (shape.shadows && shape.shadows.length > 0) {
+          const shadowCss = shape.shadows.map(s => 
+              `${s.x}px ${s.y}px ${s.blur}px rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`
+          ).join(', ');
+          styles['box-shadow'] = shadowCss;
+      }
+      
+      let styleString = '';
+      for (const [key, value] of Object.entries(styles)) {
+          if (value !== undefined && value !== null) {
+              el.style[key] = value;
+              styleString += `${key}: ${value}; `;
+          }
+      }
+
+      let innerHtml = '';
+      if (shape.children && shape.children.length > 0) {
+          shape.children.forEach(child => {
+              const { element: childElement, html: childHtml } = renderShape(child);
+              el.appendChild(childElement);
+              innerHtml += '\n  ' + childHtml.replace(/\n/g, '\n  ');
+          });
+      }
+
+      const outerHtml = `<div style="${styleString.trim()}">${innerHtml}\n</div>`;
+
+      return { element: el, html: outerHtml };
+  }
 
 });

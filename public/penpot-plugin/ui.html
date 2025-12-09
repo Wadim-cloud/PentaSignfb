@@ -1,84 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PentaSign Plugin</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <div class="container">
-        <div class="tabs">
-            <button class="tab-button active" onclick="openTab(event, 'create')">Create Signature</button>
-            <button class="tab-button" onclick="openTab(event, 'verify')">Verify</button>
-        </div>
+      <div class="tabs">
+        <button class="tab-button active" data-tab="create">
+          Create Signature
+        </button>
+        <button class="tab-button" data-tab="verify">Verify</button>
+        <button class="tab-button" data-tab="render">Render</button>
+      </div>
 
-        <!-- Create Signature Tab -->
-        <div id="create" class="tab-content" style="display: block;">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Create Ephemeral Signature</h2>
-                    <p>Generate a unique signature for the selected Penpot object.</p>
-                </div>
-                <div class="card-content">
-                    <form id="create-form">
-                        <div class="form-group">
-                            <label for="sofi">SOFI / ID</label>
-                            <input type="text" id="sofi" name="sofi" placeholder="e.g., 111111111" value="111111111">
-                        </div>
-                         <div class="form-group">
-                            <label>Selected Object</label>
-                            <div class="object-placeholder">
-                                <p>Select an object in Penpot to sign.</p>
-                            </div>
-                        </div>
-                        <button type="submit" class="button primary">Generate Signature</button>
-                    </form>
-                </div>
-            </div>
-            <div id="create-output" class="output-container" style="display: none;">
-                 <h3>Signature Output</h3>
-                 <div class="form-group">
-                    <label>Signature Bundle (JSON)</label>
-                    <textarea id="bundle-output" readonly></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Visual Signature Pattern (SVG)</label>
-                    <div id="svg-output" class="svg-container"></div>
-                </div>
-            </div>
-        </div>
+      <div id="create" class="tab-content active">
+        <form id="create-form" class="form-grid">
+          <div class="form-group full-width">
+            <label for="document-create">Document (PDF)</label>
+            <input type="file" id="document-create" name="document" accept=".pdf" required />
+          </div>
+          <div class="form-group full-width">
+            <label for="sofi-id">SOFI / ID</label>
+            <input type="text" id="sofi-id" name="sofi" value="111111111" required />
+          </div>
+          <div class="form-group full-width">
+            <button type="submit" class="button primary">
+              Generate Signature
+            </button>
+          </div>
+        </form>
+      </div>
 
-        <!-- Verify Signature Tab -->
-        <div id="verify" class="tab-content">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Verify Document Signature</h2>
-                    <p>Upload a signature bundle to verify an object's authenticity.</p>
-                </div>
-                <div class="card-content">
-                    <form id="verify-form">
-                        <div class="form-group">
-                            <label for="bundle-input">Signature Bundle (JSON)</label>
-                            <textarea id="bundle-input" name="bundle" rows="5" placeholder="Paste the signature bundle here..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Selected Object</label>
-                            <div class="object-placeholder">
-                                <p>Select the object in Penpot to verify.</p>
-                            </div>
-                        </div>
-                        <button type="submit" class="button primary">Verify Signature</button>
-                    </form>
+      <div id="verify" class="tab-content">
+        <form id="verify-form" class="form-grid">
+          <div class="form-group full-width">
+            <label for="document-verify">Document File</label>
+            <input type="file" id="document-verify" name="document" required />
+          </div>
+          <div class="form-group full-width">
+            <label for="crypto-signature">Cryptographic Signature</label>
+            <textarea
+              id="crypto-signature"
+              name="crypto-signature"
+              rows="4"
+              placeholder="Paste the cryptographic signature here..."
+              required
+            ></textarea>
+          </div>
+          <div class="form-group full-width">
+            <button type="submit" class="button primary">
+              Verify Signature
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div id="render" class="tab-content">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <button id="render-selection-btn" class="button primary">
+              Render Selection
+            </button>
+          </div>
+        </div>
+        <div class="render-output">
+            <div class="render-tabs">
+                <button class="render-tab-button active" data-render-tab="preview">Preview</button>
+                <button class="render-tab-button" data-render-tab="html">HTML</button>
+            </div>
+            <div id="preview" class="render-tab-content active">
+                <div id="render-preview-area" class="render-preview">
+                    <p>Select an object in Penpot and click "Render Selection".</p>
                 </div>
             </div>
-             <div id="verify-output" class="output-container" style="display: none;">
-                <h3>Verification Result</h3>
-                <div id="verification-result" class="alert"></div>
+            <div id="html" class="render-tab-content">
+                <pre><code id="render-html-area"></code></pre>
             </div>
         </div>
-        <div id="status-message" class="alert" style="display: none;"></div>
+      </div>
+
+      <div id="status-area"></div>
     </div>
     <script src="ui.js"></script>
-</body>
+  </body>
 </html>
