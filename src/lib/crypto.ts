@@ -5,7 +5,7 @@ import init, {
   generate_keypair as wasm_generate_keypair,
   public_from_private as wasm_public_from_private,
   sign_payload as wasm_sign_payload,
-} from '@/lib/pentasign_crypto_wasm';
+} from '@/lib/pentasign_crypto_wasm/pentasign_crypto_wasm';
 
 let wasmInitialized = false;
 
@@ -33,7 +33,7 @@ export async function signPayload(
   privateKey: Uint8Array
 ): Promise<Uint8Array> {
   await initializeWasm();
-  return wasm_sign_payload(payload_hash, privateKey);
+  return wasm_sign_payload(payloadHash, privateKey);
 }
 
 export async function getPublicKey(
