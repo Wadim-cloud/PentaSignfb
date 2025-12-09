@@ -27,6 +27,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, Fingerprint, Copy, Upload } from 'lucide-react';
 import type { SignatureBundle, WasmClient } from '@/lib/crypto';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
   document: z.any().refine(files => files?.length > 0, 'Document is required.'),
@@ -277,7 +278,7 @@ export default function CreateSignaturePage() {
           >
             <AlertTitle className="capitalize">{status.type}</AlertTitle>
             <AlertDescription>{status.message}</AlertDescription>
-          </Alert>
+          </Aler>
         )}
       </div>
     </div>
