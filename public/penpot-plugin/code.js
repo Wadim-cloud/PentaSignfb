@@ -1,1 +1,1 @@
-"use strict";(()=>{penpot.ui.open("PentaSign",penpot.ui.getPluginURL("index.html"),{width:800,height:600});})();
+"use strict";(()=>{penpot.ui.open("PentaSign","/",{width:800,height:600});})();

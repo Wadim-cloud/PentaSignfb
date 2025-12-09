@@ -23,8 +23,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https'
-        ,
+        protocol: 'https',
         hostname: 'picsum.photos',
         port: '',
         pathname: '/**',
@@ -34,14 +33,11 @@ const nextConfig: NextConfig = {
   experimental: {
     
   },
-  allowedDevOrigins: [
-    'https://6000-firebase-studio-1765318285740.cluster-p5o54ufozbgxywgwqxykwgahws.cloudworkstations.dev',
-  ],
   async rewrites() {
     return [
       {
         source: '/penpot-plugin/:path*',
-        destination: 'http://localhost:9002/penpot-plugin/:path*',
+        destination: '/penpot-plugin/:path*',
       },
     ];
   },

@@ -1,5 +1,5 @@
 
-penpot.ui.open('PentaSign', penpot.ui.getPluginURL('/'), {
+penpot.ui.open('PentaSign', '/', {
   width: 800,
   height: 600,
 });

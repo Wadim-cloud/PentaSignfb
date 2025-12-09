@@ -1,9 +1,8 @@
 {
-  "name": "PentaSign Plugin",
-  "id": "pentasign-plugin",
-  "main": "code.js",
-  "ui": "ui.html",
-  "editorType": ["penpot"],
+  "name": "PentaSign",
+  "description": "Visually and cryptographically sign documents within Penpot.",
+  "code": "/penpot-plugin/code.js",
+  "ui": "/",
   "permissions": [
     "content:read",
     "content:write"
