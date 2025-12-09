@@ -1,94 +1,72 @@
-const tabs = document.querySelectorAll('.tab-button');
-const tabContents = document.querySelectorAll('.tab-content');
-const createForm = document.getElementById('create-form');
-const verifyForm = document.getElementById('verify-form');
-const statusEl = document.getElementById('status');
-const createResultEl = document.getElementById('create-result');
-const verifyResultEl = document.getElementById('verify-result');
+// This script runs in the plugin's UI (iframe).
+// It has access to the DOM, but not the Penpot API directly.
 
-// --- Tab Navigation ---
-tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
+const penpotConnection = window.parent; // Connection to the main penpot context
 
-        const target = tab.getAttribute('data-tab');
-        tabContents.forEach(content => {
-            content.classList.remove('active');
-            if (content.id === target) {
-                content.classList.add('active');
-            }
-        });
-    });
-});
-
-// --- Form Submissions ---
-createForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const sofi = document.getElementById('sofi').value;
-    if (!sofi) {
-        updateStatus('SOFI/ID is required.', 'error');
-        return;
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tab-content");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
     }
-    updateStatus('Generating signature...');
-    parent.postMessage({ pluginMessage: { type: 'create-signature', sofi } }, '*');
-});
-
-verifyForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    updateStatus('Verifying signature...');
-    parent.postMessage({ pluginMessage: { type: 'verify-signature' } }, '*');
-});
-
-// --- Communication with Penpot (code.js) ---
-window.onmessage = (event) => {
-    const msg = event.data.pluginMessage;
-    if (!msg) return;
-
-    console.log('Message from code.js:', msg);
-
-    switch (msg.type) {
-        case 'status-update':
-            updateStatus(msg.message, msg.statusType);
-            break;
-        case 'creation-success':
-            showCreationResult(msg.svg);
-            updateStatus('Signature created successfully!', 'success');
-            break;
-        case 'verification-result':
-            showVerificationResult(msg.result);
-            const status = msg.result.isAuthentic ? 'success' : 'error';
-            updateStatus(`Verification ${status === 'success' ? 'succeeded' : 'failed'}.`, status);
-            break;
-        case 'error':
-            updateStatus(msg.message, 'error');
-            break;
+    tablinks = document.getElementsByClassName("tab-button");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
     }
-};
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
 
-// --- UI Helper Functions ---
-function updateStatus(message, type = 'info') {
+function showStatus(message, type = 'info') {
+    const statusEl = document.getElementById('status-message');
     statusEl.textContent = message;
-    statusEl.style.color = type === 'error' ? '#e53e3e' : type === 'success' ? '#38a169' : 'var(--muted-foreground)';
+    statusEl.className = `alert ${type}`;
+    statusEl.style.display = 'block';
+    setTimeout(() => {
+        statusEl.style.display = 'none';
+    }, 3000);
 }
 
-function showCreationResult(svg) {
-    const svgContainer = document.getElementById('visual-signature-svg');
-    svgContainer.innerHTML = svg;
-    createResultEl.style.display = 'block';
-    verifyResultEl.style.display = 'none';
-}
+// Handle form submissions
+document.getElementById('create-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    showStatus('Requesting to sign selected object...', 'info');
+    penpotConnection.postMessage({
+        type: 'sign-document',
+        payload: {
+            sofi: document.getElementById('sofi').value,
+        }
+    }, '*');
+});
 
-function showVerificationResult(result) {
-    verifyResultEl.innerHTML = `
-        <h2>Verification ${result.isAuthentic ? 'Successful' : 'Failed'}</h2>
-        <p>${result.verificationDetails}</p>
-    `;
-    verifyResultEl.className = `result-area ${result.isAuthentic ? 'success' : 'error'}`;
-    verifyResultEl.style.display = 'block';
-    createResultEl.style.display = 'none';
-}
+document.getElementById('verify-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    showStatus('Requesting to verify selected object...', 'info');
+    penpotConnection.postMessage({
+        type: 'verify-document',
+        payload: {
+            bundle: document.getElementById('bundle-input').value,
+        }
+    }, '*');
+});
 
-// Initial status message
-updateStatus('Select a shape to begin.');
-parent.postMessage({ pluginMessage: { type: 'ui-ready' } }, '*');
+
+// Listen for messages from the main plugin script (code.js)
+window.addEventListener('message', event => {
+    const message = event.data;
+    if(message.source && message.source.startsWith('react-devtools')) return;
+    
+    console.log('Message from main context:', message);
+
+    if (message.type === 'error') {
+        showStatus(message.message, 'error');
+    }
+
+    if (message.type === 'sign-success') {
+        showStatus(message.message, 'success');
+        // In a real app, you would receive the bundle and display it.
+        document.getElementById('create-output').style.display = 'block';
+        document.getElementById('bundle-output').value = "{\n  \"message\": \"This is a simulated signature bundle.\"\n}";
+        document.getElementById('svg-output').innerHTML = `<p>Simulated SVG</p>`;
+    }
+});

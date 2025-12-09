@@ -36,14 +36,6 @@ const nextConfig: NextConfig = {
       'https://6000-firebase-studio-1765318285740.cluster-p5o54ufozbgxywgwqxykwgahws.cloudworkstations.dev',
     ],
   },
-  async rewrites() {
-    return [
-      {
-        source: '/penpot-plugin/:path*',
-        destination: '/penpot-plugin/:path*',
-      },
-    ];
-  },
 };
 
 export default nextConfig;

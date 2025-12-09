@@ -3,57 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PentaSign</title>
+    <title>PentaSign Plugin</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app">
-        <header>
-            <h1>PentaSign</h1>
-            <p>Cryptographic & Visual Signatures</p>
-        </header>
-        
+    <div class="container">
         <div class="tabs">
-            <button class="tab-button active" data-tab="create">Create Signature</button>
-            <button class="tab-button" data-tab="verify">Verify</button>
+            <button class="tab-button active" onclick="openTab(event, 'create')">Create Signature</button>
+            <button class="tab-button" onclick="openTab(event, 'verify')">Verify</button>
         </div>
 
-        <main>
-            <!-- Create Signature Tab -->
-            <div id="create" class="tab-content active">
-                <p class="description">Generate a new signature for a selected shape.</p>
-                <form id="create-form">
-                    <div class="form-group">
-                        <label for="sofi">SOFI / ID</label>
-                        <input type="text" id="sofi" name="sofi" placeholder="e.g., 111111111" required>
-                    </div>
-                    <button type="submit" id="create-sig-btn">Generate Signature</button>
-                </form>
-                <div id="create-result" class="result-area" style="display: none;">
-                    <h2>Signature Created</h2>
-                    <p>The signature has been attached to the selected shape.</p>
-                    <div class="output-group">
-                        <label>Visual Signature</label>
-                        <div id="visual-signature-svg"></div>
-                    </div>
+        <!-- Create Signature Tab -->
+        <div id="create" class="tab-content" style="display: block;">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Create Ephemeral Signature</h2>
+                    <p>Generate a unique signature for the selected Penpot object.</p>
+                </div>
+                <div class="card-content">
+                    <form id="create-form">
+                        <div class="form-group">
+                            <label for="sofi">SOFI / ID</label>
+                            <input type="text" id="sofi" name="sofi" placeholder="e.g., 111111111" value="111111111">
+                        </div>
+                         <div class="form-group">
+                            <label>Selected Object</label>
+                            <div class="object-placeholder">
+                                <p>Select an object in Penpot to sign.</p>
+                            </div>
+                        </div>
+                        <button type="submit" class="button primary">Generate Signature</button>
+                    </form>
                 </div>
             </div>
+            <div id="create-output" class="output-container" style="display: none;">
+                 <h3>Signature Output</h3>
+                 <div class="form-group">
+                    <label>Signature Bundle (JSON)</label>
+                    <textarea id="bundle-output" readonly></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Visual Signature Pattern (SVG)</label>
+                    <div id="svg-output" class="svg-container"></div>
+                </div>
+            </div>
+        </div>
 
-            <!-- Verify Signature Tab -->
-            <div id="verify" class="tab-content">
-                <p class="description">Verify the signature of a selected shape.</p>
-                <form id="verify-form">
-                    <button type="submit" id="verify-sig-btn">Verify Selected Shape</button>
-                </form>
-                <div id="verify-result" class="result-area" style="display: none;">
-                    <!-- Verification result will be shown here -->
+        <!-- Verify Signature Tab -->
+        <div id="verify" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Verify Document Signature</h2>
+                    <p>Upload a signature bundle to verify an object's authenticity.</p>
+                </div>
+                <div class="card-content">
+                    <form id="verify-form">
+                        <div class="form-group">
+                            <label for="bundle-input">Signature Bundle (JSON)</label>
+                            <textarea id="bundle-input" name="bundle" rows="5" placeholder="Paste the signature bundle here..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Selected Object</label>
+                            <div class="object-placeholder">
+                                <p>Select the object in Penpot to verify.</p>
+                            </div>
+                        </div>
+                        <button type="submit" class="button primary">Verify Signature</button>
+                    </form>
                 </div>
             </div>
-        </main>
-        
-        <footer>
-            <div id="status">Ready</div>
-        </footer>
+             <div id="verify-output" class="output-container" style="display: none;">
+                <h3>Verification Result</h3>
+                <div id="verification-result" class="alert"></div>
+            </div>
+        </div>
+        <div id="status-message" class="alert" style="display: none;"></div>
     </div>
     <script src="ui.js"></script>
 </body>
