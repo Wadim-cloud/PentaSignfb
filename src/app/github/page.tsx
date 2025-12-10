@@ -40,9 +40,9 @@ export default function GithubPage() {
     },
     {
       description:
-        'Add your new GitHub repository as the remote origin (replace the URL)',
+        'Add your new GitHub repository as the remote origin',
       command:
-        'git remote add origin [YOUR_REPOSITORY_URL]',
+        'git remote add origin https://github.com/Wadim-cloud/PentaSignfb.git',
     },
     {
       description: 'Push your code to the main branch on GitHub',
@@ -64,7 +64,7 @@ export default function GithubPage() {
           <div className="flex items-center space-x-4 rounded-md border p-4">
             <GitBranch className="h-6 w-6 text-muted-foreground" />
             <div className="flex-1 space-y-1">
-              <p className="text-sm font-medium leading-none">
+              <p className="font-medium leading-none">
                 Continuous Integration & Deployment
               </p>
               <div className="text-sm text-green-600 dark:text-green-500 flex items-center">
@@ -81,12 +81,12 @@ export default function GithubPage() {
               Step 1: Create a GitHub Repository
             </h3>
             <div className="text-sm text-muted-foreground mb-4">
-              If you haven't already, create a new repository on GitHub. After creating it, copy the repository URL (it should look something like `https://github.com/your-username/your-repo-name.git`).
+              If you haven't already, create a new repository on GitHub. You've provided the URL, so you're ready for the next step!
             </div>
             <Button asChild>
               <a href={repoUrl} target="_blank" rel="noopener noreferrer">
                 <Github className="mr-2 h-4 w-4" />
-                Create a new repository
+                Create another repository
               </a>
             </Button>
           </div>
@@ -96,7 +96,7 @@ export default function GithubPage() {
             </h3>
             <div className="text-sm text-muted-foreground mb-4">
               Open a terminal in your project's root directory and run the
-              following commands. Remember to replace `[YOUR_REPOSITORY_URL]` with the actual URL from Step 1.
+              following commands. I've already included your repository URL.
             </div>
             <div className="space-y-2">
               {commands.map((item, index) => (
