@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { verifySignatureAction } from './actions';
+// import { verifySignatureAction } from './actions'; // Server Action removed
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -60,26 +60,16 @@ export default function VerifySignaturePage() {
     setIsLoading(true);
     setResult(null);
 
-    try {
-      const documentFile = values.document[0];
-      const documentDataUri = await fileToBase64(documentFile);
-
-      const response = await verifySignatureAction({
-        documentDataUri,
-        cryptographicSignature: values.cryptographicSignature,
-      });
-
-      setResult(response);
-    } catch (error) {
-      console.error(error);
+    // The Server Action has been removed to allow for static export.
+    // We will simulate a successful response for UI purposes.
+    setTimeout(() => {
       setResult({
-        isAuthentic: false,
+        isAuthentic: true,
         verificationDetails:
-          'Failed to process the request. Please try again.',
+          'This is a placeholder response. Server-side verification is disabled in static export mode to allow deployment on GitHub Pages.',
       });
-    } finally {
       setIsLoading(false);
-    }
+    }, 1000);
   }
 
   return (
@@ -89,7 +79,7 @@ export default function VerifySignaturePage() {
           <CardTitle>Verify Document Signature</CardTitle>
           <CardDescription>
             Upload a document and its cryptographic signature to verify its
-            authenticity.
+            authenticity. (Note: Live verification is disabled for static deployment).
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -156,7 +146,7 @@ export default function VerifySignaturePage() {
               )}
               <AlertTitle>
                 {result.isAuthentic
-                  ? 'Verification Successful'
+                  ? 'Verification Placeholder'
                   : 'Verification Failed'}
               </AlertTitle>
               <AlertDescription>{result.verificationDetails}</AlertDescription>
