@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 
-const repoUrl = 'https://github.com/new'; // Replace with actual repo URL when available
+const repoUrl = 'https://github.com/new';
 
 export default function GithubPage() {
   const { toast } = useToast();
@@ -40,9 +40,9 @@ export default function GithubPage() {
     },
     {
       description:
-        'Add your new GitHub repository as the remote origin (replace with your repo URL)',
+        'Add your new GitHub repository as the remote origin (replace the URL)',
       command:
-        'git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git',
+        'git remote add origin [YOUR_REPOSITORY_URL]',
     },
     {
       description: 'Push your code to the main branch on GitHub',
@@ -80,9 +80,9 @@ export default function GithubPage() {
             <h3 className="text-lg font-semibold mb-2">
               Step 1: Create a GitHub Repository
             </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              If you don't have a repository for this project yet, create a new one on GitHub.
-            </p>
+            <div className="text-sm text-muted-foreground mb-4">
+              If you haven't already, create a new repository on GitHub. After creating it, copy the repository URL (it should look something like `https://github.com/your-username/your-repo-name.git`).
+            </div>
             <Button asChild>
               <a href={repoUrl} target="_blank" rel="noopener noreferrer">
                 <Github className="mr-2 h-4 w-4" />
@@ -94,15 +94,15 @@ export default function GithubPage() {
             <h3 className="text-lg font-semibold mb-2">
               Step 2: Push Your Code
             </h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <div className="text-sm text-muted-foreground mb-4">
               Open a terminal in your project's root directory and run the
-              following commands.
-            </p>
+              following commands. Remember to replace `[YOUR_REPOSITORY_URL]` with the actual URL from Step 1.
+            </div>
             <div className="space-y-2">
               {commands.map((item, index) => (
                 <Alert key={index} className="font-mono text-sm">
                   <AlertDescription className="flex justify-between items-center">
-                    <span>
+                    <span className="break-all">
                       <span className="text-muted-foreground mr-2">$</span>
                       {item.command}
                     </span>
@@ -110,6 +110,7 @@ export default function GithubPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => copyToClipboard(item.command)}
+                      className="shrink-0"
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
@@ -122,9 +123,9 @@ export default function GithubPage() {
             <h3 className="text-lg font-semibold mb-2">
               Step 3: Enable GitHub Pages
             </h3>
-            <p className="text-sm text-muted-foreground">
-              Once you've pushed your code, go to your repository's settings on GitHub. Navigate to the "Pages" section and select the source as "GitHub Actions". Your site will be deployed automatically.
-            </p>
+            <div className="text-sm text-muted-foreground">
+              Once you've pushed your code, go to your repository's settings on GitHub. Navigate to the "Pages" section and select the source as "GitHub Actions". Your site will be deployed automatically on the next push.
+            </div>
           </div>
         </CardContent>
       </Card>
