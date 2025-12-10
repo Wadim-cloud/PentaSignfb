@@ -1,0 +1,6 @@
+{
+  "name": "PentaSign",
+  "id": "pentasign-plugin",
+  "api": "1.0.0",
+  "main": "code.js"
+}
