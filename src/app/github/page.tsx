@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { useState } from 'react';
 
-const repoUrl = 'https://github.com/new';
+const newRepoUrl = 'https://github.com/new';
 
 export default function GithubPage() {
   const { toast } = useToast();
@@ -89,7 +89,7 @@ export default function GithubPage() {
               If you haven't already, create a new repository on GitHub.
             </div>
             <Button asChild>
-              <a href={repoUrl} target="_blank" rel="noopener noreferrer">
+              <a href={newRepoUrl} target="_blank" rel="noopener noreferrer">
                 <Github className="mr-2 h-4 w-4" />
                 Create a new repository
               </a>
@@ -135,9 +135,9 @@ export default function GithubPage() {
             <div className="text-sm text-muted-foreground mb-4">
              After you've pushed your code, the deployment will begin. Go to the "Actions" tab in your repository to see the status. Once complete, go to your repository's "Settings" &gt; "Pages" section and select "GitHub Actions" as the source to get your live URL.
             </div>
-            <Button disabled>
+            <Button disabled={!pushed}>
                 <ExternalLink className="mr-2 h-4 w-4" />
-                View Deployment Progress (Push code first)
+                View Deployment Progress
             </Button>
           </div>
         </CardContent>
