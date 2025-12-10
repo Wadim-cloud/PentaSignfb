@@ -249,7 +249,7 @@ export default function CreateSignaturePage() {
                 {isLoading && !svgPattern && (
                   <div className="text-center text-sm text-muted-foreground">
                     <Loader2 className="h-6 w-6 animate-spin" />
-                    <p className="mt-2">Generating pattern...</p>
+                    <span className="mt-2 block">Generating pattern...</span>
                   </div>
                 )}
                 {!isLoading && !svgPattern && (

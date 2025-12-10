@@ -67,13 +67,13 @@ export default function GithubPage() {
               <p className="text-sm font-medium leading-none">
                 Continuous Integration & Deployment
               </p>
-              <p className="text-sm text-green-600 dark:text-green-500 flex items-center">
+              <div className="text-sm text-green-600 dark:text-green-500 flex items-center">
                 <CheckCircle2 className="mr-2 h-4 w-4" />
                 Workflow file created at{' '}
                 <Badge variant="secondary" className="ml-2">
                   .github/workflows/deploy.yml
                 </Badge>
-              </p>
+              </div>
             </div>
           </div>
           <div>
