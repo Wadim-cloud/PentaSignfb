@@ -16,10 +16,16 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 const newRepoUrl = 'https://github.com/new';
+// This assumes the repo name is 'PentaSignfb' and the user is 'Wadim-cloud'.
+// This can be updated if the user specifies a different repository.
+const repoUrl = 'https://github.com/Wadim-cloud/PentaSignfb';
+const repoSettingsPagesUrl = `${repoUrl}/settings/pages`;
+const repoActionsUrl = `${repoUrl}/actions`;
+
 
 export default function GithubPage() {
   const { toast } = useToast();
-  const [pushed, setPushed] = useState(false); // Set to false to show instructions initially
+  const [pushed, setPushed] = useState(false); 
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -130,15 +136,27 @@ export default function GithubPage() {
           </div>
            <div>
             <h3 className="text-lg font-semibold mb-2">
-              Step 3: Monitor Deployment & Enable Pages
+              Step 3: Enable and Monitor Deployment
             </h3>
-            <div className="text-sm text-muted-foreground mb-4">
-             After you've pushed your code, the deployment will begin. Go to the "Actions" tab in your repository to see the status. Once complete, go to your repository's "Settings" &gt; "Pages" section and select "GitHub Actions" as the source to get your live URL.
+            <div className="text-sm text-muted-foreground mb-4 space-y-2">
+             <p>After your first push, the deployment workflow will fail. This is expected.</p>
+             <p>You must first enable GitHub Pages. Go to your repository's Pages settings, select "GitHub Actions" as the source, and save.</p>
             </div>
-            <Button disabled={!pushed}>
-                <ExternalLink className="mr-2 h-4 w-4" />
-                View Deployment Progress
-            </Button>
+             <Button asChild variant="default" disabled={!pushed}>
+                <a href={repoSettingsPagesUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Enable GitHub Pages
+                </a>
+              </Button>
+             <p className="text-sm text-muted-foreground my-4">
+                Once enabled, go to the "Actions" tab to re-run the failed workflow or push a new commit to trigger a new deployment.
+              </p>
+             <Button asChild variant="outline" disabled={!pushed}>
+                <a href={repoActionsUrl} target="_blank" rel="noopener noreferrer">
+                    <Github className="mr-2 h-4 w-4" />
+                    View Deployment Progress
+                </a>
+             </Button>
           </div>
         </CardContent>
       </Card>
