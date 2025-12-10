@@ -8,15 +8,19 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Github, GitBranch, CheckCircle2, Copy } from 'lucide-react';
+import { Github, GitBranch, CheckCircle2, Copy, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { useState } from 'react';
 
 const repoUrl = 'https://github.com/new';
+const userRepo = 'https://github.com/Wadim-cloud/PentaSignfb.git';
 
 export default function GithubPage() {
   const { toast } = useToast();
+  const [pushed, setPushed] = useState(true);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -42,7 +46,7 @@ export default function GithubPage() {
       description:
         'Add your new GitHub repository as the remote origin',
       command:
-        'git remote add origin https://github.com/Wadim-cloud/PentaSignfb.git',
+        `git remote add origin ${userRepo}`,
     },
     {
       description: 'Push your code to the main branch on GitHub',
@@ -81,7 +85,7 @@ export default function GithubPage() {
               Step 1: Create a GitHub Repository
             </h3>
             <div className="text-sm text-muted-foreground mb-4">
-              If you haven't already, create a new repository on GitHub. You've provided the URL, so you're ready for the next step!
+              If you haven't already, create a new repository on GitHub. I've included the URL you provided.
             </div>
             <Button asChild>
               <a href={repoUrl} target="_blank" rel="noopener noreferrer">
@@ -94,6 +98,17 @@ export default function GithubPage() {
             <h3 className="text-lg font-semibold mb-2">
               Step 2: Push Your Code
             </h3>
+
+            {pushed ? (
+               <Alert variant="default" className="border-green-500/50 text-green-700 [&>svg]:text-green-700 dark:border-green-500/50 dark:text-green-400">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <AlertTitle>Code Pushed Successfully!</AlertTitle>
+                  <AlertDescription>
+                    Your code has been pushed to GitHub. The deployment workflow is now running.
+                  </AlertDescription>
+                </Alert>
+            ) : (
+            <>
             <div className="text-sm text-muted-foreground mb-4">
               Open a terminal in your project's root directory and run the
               following commands. I've already included your repository URL.
@@ -118,14 +133,22 @@ export default function GithubPage() {
                 </Alert>
               ))}
             </div>
+            </>
+            )}
           </div>
            <div>
             <h3 className="text-lg font-semibold mb-2">
-              Step 3: Enable GitHub Pages
+              Step 3: Monitor Deployment & Enable Pages
             </h3>
-            <div className="text-sm text-muted-foreground">
-              Once you've pushed your code, go to your repository's settings on GitHub. Navigate to the "Pages" section and select the source as "GitHub Actions". Your site will be deployed automatically on the next push.
+            <div className="text-sm text-muted-foreground mb-4">
+             Your deployment is in progress. Go to the "Actions" tab in your repository to see the status. Once complete, go to your repository's "Settings" &gt; "Pages" section and select "GitHub Actions" as the source to get your live URL.
             </div>
+            <Button asChild>
+              <a href={userRepo.replace('.git', '/actions')} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="mr-2 h-4 w-4" />
+                View Deployment Progress
+              </a>
+            </Button>
           </div>
         </CardContent>
       </Card>
