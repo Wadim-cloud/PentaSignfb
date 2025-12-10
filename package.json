@@ -7,7 +7,7 @@
     "build:plugin": "npm run clean && esbuild src/plugin.ts --bundle --minify --outfile=public/code.js && cp manifest.json public/manifest.json",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
-    "build": "npm run build:plugin && NODE_ENV=production next build",
+    "build": "npm run build:plugin && next build",
     "start": "next start -p 9002 -H 0.0.0.0",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
