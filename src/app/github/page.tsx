@@ -16,11 +16,10 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 const repoUrl = 'https://github.com/new';
-const userRepo = 'https://github.com/Wadim-cloud/PentaSignfb.git';
 
 export default function GithubPage() {
   const { toast } = useToast();
-  const [pushed, setPushed] = useState(true);
+  const [pushed, setPushed] = useState(false); // Set to false to show instructions initially
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -29,9 +28,11 @@ export default function GithubPage() {
     });
   };
 
+  const userRepoPlaceholder = '<YOUR_REPOSITORY_URL>';
+
   const commands = [
     {
-      description: 'Initialize a new Git repository',
+      description: 'Initialize a new Git repository (if you haven\'t already)',
       command: 'git init -b main',
     },
     {
@@ -44,9 +45,9 @@ export default function GithubPage() {
     },
     {
       description:
-        'Add your new GitHub repository as the remote origin',
+        'Add your new GitHub repository as the remote origin. Replace the placeholder with your actual URL.',
       command:
-        `git remote add origin ${userRepo}`,
+        `git remote add origin ${userRepoPlaceholder}`,
     },
     {
       description: 'Push your code to the main branch on GitHub',
@@ -85,12 +86,12 @@ export default function GithubPage() {
               Step 1: Create a GitHub Repository
             </h3>
             <div className="text-sm text-muted-foreground mb-4">
-              If you haven't already, create a new repository on GitHub. I've included the URL you provided.
+              If you haven't already, create a new repository on GitHub.
             </div>
             <Button asChild>
               <a href={repoUrl} target="_blank" rel="noopener noreferrer">
                 <Github className="mr-2 h-4 w-4" />
-                Create another repository
+                Create a new repository
               </a>
             </Button>
           </div>
@@ -98,20 +99,9 @@ export default function GithubPage() {
             <h3 className="text-lg font-semibold mb-2">
               Step 2: Push Your Code
             </h3>
-
-            {pushed ? (
-               <Alert variant="default" className="border-green-500/50 text-green-700 [&>svg]:text-green-700 dark:border-green-500/50 dark:text-green-400">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <AlertTitle>Code Pushed Successfully!</AlertTitle>
-                  <AlertDescription>
-                    Your code has been pushed to GitHub. The deployment workflow is now running.
-                  </AlertDescription>
-                </Alert>
-            ) : (
-            <>
             <div className="text-sm text-muted-foreground mb-4">
               Open a terminal in your project's root directory and run the
-              following commands. I've already included your repository URL.
+              following commands. Make sure to replace the placeholder with your actual repository URL.
             </div>
             <div className="space-y-2">
               {commands.map((item, index) => (
@@ -133,21 +123,21 @@ export default function GithubPage() {
                 </Alert>
               ))}
             </div>
-            </>
-            )}
+            <div className='text-sm text-muted-foreground mt-4'>After pushing your code, you can mark this step as complete.</div>
+             <Button variant="outline" size="sm" className="mt-2" onClick={() => setPushed(true)}>
+                Mark as Pushed
+              </Button>
           </div>
            <div>
             <h3 className="text-lg font-semibold mb-2">
               Step 3: Monitor Deployment & Enable Pages
             </h3>
             <div className="text-sm text-muted-foreground mb-4">
-             Your deployment is in progress. Go to the "Actions" tab in your repository to see the status. Once complete, go to your repository's "Settings" &gt; "Pages" section and select "GitHub Actions" as the source to get your live URL.
+             After you've pushed your code, the deployment will begin. Go to the "Actions" tab in your repository to see the status. Once complete, go to your repository's "Settings" &gt; "Pages" section and select "GitHub Actions" as the source to get your live URL.
             </div>
-            <Button asChild>
-              <a href={userRepo.replace('.git', '/actions')} target="_blank" rel="noopener noreferrer">
+            <Button disabled>
                 <ExternalLink className="mr-2 h-4 w-4" />
-                View Deployment Progress
-              </a>
+                View Deployment Progress (Push code first)
             </Button>
           </div>
         </CardContent>
